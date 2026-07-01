@@ -50,10 +50,10 @@ const ProfileInfo = () => {
               {session?.user?.name ?? "Mcc Callem"}
             </div>
             <Link
-              href="/dashboard"
+              href=""
               className="text-xs text-default-600 hover:text-primary"
             >
-              @uxuidesigner
+              @admin
             </Link>
           </div>
         </DropdownMenuLabel>
@@ -62,23 +62,15 @@ const ProfileInfo = () => {
             {
               name: "profile",
               icon: "heroicons:user",
-              href:"/user-profile"
+              href:""
             },
-            {
-              name: "Billing",
-              icon: "heroicons:megaphone",
-              href:"/dashboard"
-            },
+           
             {
               name: "Settings",
               icon: "heroicons:paper-airplane",
-              href:"/dashboard"
+              href:""
             },
-            {
-              name: "Keyboard shortcuts",
-              icon: "heroicons:language",
-              href:"/dashboard"
-            },
+            
           ].map((item, index) => (
             <Link
               href={item.href}
@@ -94,49 +86,8 @@ const ProfileInfo = () => {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <Link href="/dashboard" className="cursor-pointer">
-            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-              <Icon icon="heroicons:user-group" className="w-4 h-4" />
-              team
-            </DropdownMenuItem>
-          </Link>
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background">
-              <Icon icon="heroicons:user-plus" className="w-4 h-4" />
-              Invite user
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                {[
-                  {
-                    name: "email",
-                  },
-                  {
-                    name: "message",
-                  },
-                  {
-                    name: "facebook",
-                  },
-                ].map((item, index) => (
-                  <Link
-                    href="/dashboard"
-                    key={`message-sub-${index}`}
-                    className="cursor-pointer"
-                  >
-                    <DropdownMenuItem className="text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-                      {item.name}
-                    </DropdownMenuItem>
-                  </Link>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
-          <Link href="/dashboard">
-            <DropdownMenuItem className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
-              <Icon icon="heroicons:variable" className="w-4 h-4" />
-              Github
-            </DropdownMenuItem>
-          </Link>
+          
+          
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
@@ -146,17 +97,12 @@ const ProfileInfo = () => {
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 {[
-                  {
-                    name: "portal",
-                  },
-                  {
-                    name: "slack",
-                  },
+                  
                   {
                     name: "whatsapp",
                   },
                 ].map((item, index) => (
-                  <Link href="/dashboard" key={`message-sub-${index}`}>
+                  <Link href="" key={`message-sub-${index}`}>
                     <DropdownMenuItem className="text-sm font-medium text-default-600 capitalize px-3 py-1.5 dark:hover:bg-background cursor-pointer">
                       {item.name}
                     </DropdownMenuItem>

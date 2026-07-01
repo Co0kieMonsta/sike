@@ -1,19 +1,18 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
 
 // GET - Fetch all accounts
 export async function GET(request) {
   try {
-    const { data: cuentas, error } = await supabase
-      .from("finance_accounts")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const accountsRef = collection(db, "finance_accounts");
+    const q = query(accountsRef, orderBy("created_at", "desc"));
+    const snapshot = await getDocs(q);
 
-    if (error) {
-      throw error;
-    }
+    const cuentas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    const totalSaldo = cuentas.reduce((sum, c) => sum + Number(c.saldo), 0);
+    const totalSaldo = cuentas.reduce((sum, c) => sum + Number(c.saldo || 0), 0);
 
     return NextResponse.json({
       status: "success",
@@ -39,31 +38,27 @@ export async function POST(request) {
   try {
     const reqBody = await request.json();
 
-    const { data, error } = await supabase
-      .from("finance_accounts")
-      .insert([
-        {
-          nombre: reqBody.nombre,
-          tipo: reqBody.tipo,
-          numero_cuenta: reqBody.numeroCuenta,
-          banco: reqBody.banco,
-          saldo: reqBody.saldo || 0,
-          moneda: reqBody.moneda || "USD",
-          estado: reqBody.estado || "activo",
-          descripcion: reqBody.descripcion,
-        },
-      ])
-      .select();
+    const accountsRef = collection(db, "finance_accounts");
+    const newAccount = {
+      nombre: reqBody.nombre,
+      tipo: reqBody.tipo,
+      numero_cuenta: reqBody.numeroCuenta || null,
+      banco: reqBody.banco || null,
+      saldo: reqBody.saldo || 0,
+      moneda: reqBody.moneda || "USD",
+      estado: reqBody.estado || "activo",
+      descripcion: reqBody.descripcion || null,
+      created_at: new Date().toISOString()
+    };
 
-    if (error) {
-      throw error;
-    }
+    const docRef = await addDoc(accountsRef, newAccount);
+    const createdData = { id: docRef.id, ...newAccount };
 
     return NextResponse.json(
       {
         status: "success",
         message: "Cuenta creada exitosamente",
-        data: data[0],
+        data: createdData,
       },
       { status: 201 }
     );

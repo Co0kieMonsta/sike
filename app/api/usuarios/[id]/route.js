@@ -1,30 +1,19 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import bcrypt from "bcrypt";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-
-// Create private admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
 
 // GET - Fetch single usuario by ID
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
     
-    // In strict RLS, we might need admin client here if RLS is effectively "no one can read"
-    // But usually reading is open or authenticated. Using admin client to be safe for now 
-    // since we are replacing internal mock admin logic.
-    const { data: usuario, error } = await supabaseAdmin
-      .from("system_users")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const userRef = doc(db, "system_users", id);
+    const userSnap = await getDoc(userRef);
 
-    if (error || !usuario) {
+    if (!userSnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -36,7 +25,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({
       status: "success",
-      data: usuario,
+      data: { id: userSnap.id, ...userSnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -71,29 +60,21 @@ export async function PUT(request, { params }) {
     const reqBody = await request.json();
 
     const updates = { ...reqBody };
-    delete updates.id; // Don't allow ID update
+    delete updates.id; 
     delete updates.created_at; 
-    delete updates.created_by; // Correctly preserve original creator
+    delete updates.created_by; 
     
-    // Track modification
     updates.updated_by = session.user.id;
     updates.updated_at = new Date().toISOString();
     
-    // If password is present, hash it
     if (updates.password) {
         updates.password = await bcrypt.hash(updates.password, 10);
     }
 
-    // Update in Supabase
-    const { data, error } = await supabaseAdmin
-      .from("system_users")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    const userRef = doc(db, "system_users", id);
+    const userSnap = await getDoc(userRef);
 
-    if (error) {
-      if (error.code === 'PGRST116') { // Not found from single()
+    if (!userSnap.exists()) {
          return NextResponse.json(
           {
             status: "fail",
@@ -101,14 +82,15 @@ export async function PUT(request, { params }) {
           },
           { status: 404 }
         );
-      }
-      throw error;
     }
+
+    await updateDoc(userRef, updates);
+    const updatedSnap = await getDoc(userRef);
 
     return NextResponse.json({
       status: "success",
       message: "Usuario actualizado exitosamente",
-      data: data,
+      data: { id: updatedSnap.id, ...updatedSnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -141,7 +123,6 @@ export async function DELETE(request, { params }) {
 
     const { id } = await params;
     
-    // Prevent deleting self (optional safety)
     if (session.user.id === id) {
        return NextResponse.json(
         {
@@ -152,12 +133,8 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    const { error } = await supabaseAdmin
-      .from("system_users")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    const userRef = doc(db, "system_users", id);
+    await deleteDoc(userRef);
 
     return NextResponse.json({
       status: "success",

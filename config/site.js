@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "NitrocideERP",
+  name: "SikeERP",
   description: null,
   theme: "violet",
   layout: "vertical",

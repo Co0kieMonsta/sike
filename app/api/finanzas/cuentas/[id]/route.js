@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 // GET - Fetch single account
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
     
-    const { data: cuenta, error } = await supabase
-      .from("finance_accounts")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const accountRef = doc(db, "finance_accounts", id);
+    const accountSnap = await getDoc(accountRef);
 
-    if (error || !cuenta) {
+    if (!accountSnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -24,7 +22,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({
       status: "success",
-      data: cuenta,
+      data: { id: accountSnap.id, ...accountSnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -45,26 +43,10 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const reqBody = await request.json();
 
-    const { data, error } = await supabase
-      .from("finance_accounts")
-      .update({
-          nombre: reqBody.nombre,
-          tipo: reqBody.tipo,
-          numero_cuenta: reqBody.numeroCuenta,
-          banco: reqBody.banco,
-          saldo: reqBody.saldo,
-          moneda: reqBody.moneda,
-          estado: reqBody.estado,
-          descripcion: reqBody.descripcion,
-      })
-      .eq("id", id)
-      .select();
+    const accountRef = doc(db, "finance_accounts", id);
+    const accountSnap = await getDoc(accountRef);
 
-    if (error) {
-       throw error;
-    }
-    
-    if (data.length === 0) {
+    if (!accountSnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -74,10 +56,28 @@ export async function PUT(request, { params }) {
       );
     }
 
+    const updates = {
+      nombre: reqBody.nombre,
+      tipo: reqBody.tipo,
+      numero_cuenta: reqBody.numeroCuenta,
+      banco: reqBody.banco,
+      saldo: reqBody.saldo,
+      moneda: reqBody.moneda,
+      estado: reqBody.estado,
+      descripcion: reqBody.descripcion,
+      updated_at: new Date().toISOString()
+    };
+
+    // Remove undefined values
+    Object.keys(updates).forEach(key => updates[key] === undefined && delete updates[key]);
+
+    await updateDoc(accountRef, updates);
+    const updatedSnap = await getDoc(accountRef);
+
     return NextResponse.json({
       status: "success",
       message: "Cuenta actualizada exitosamente",
-      data: data[0],
+      data: { id: updatedSnap.id, ...updatedSnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -97,14 +97,8 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
     
-    const { error } = await supabase
-      .from("finance_accounts")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-       throw error;
-    }
+    const accountRef = doc(db, "finance_accounts", id);
+    await deleteDoc(accountRef);
 
     return NextResponse.json({
       status: "success",

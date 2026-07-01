@@ -1,5 +1,7 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, addDoc, query, where, orderBy } from "firebase/firestore";
 
 // GET - Fetch all categories
 export async function GET(request) {
@@ -7,20 +9,17 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const tipo = searchParams.get("tipo");
 
-    let query = supabase
-      .from("finance_categories")
-      .select("*")
-      .order("nombre", { ascending: true });
-
+    const categoriesRef = collection(db, "finance_categories");
+    
+    let q;
     if (tipo) {
-      query = query.eq("tipo", tipo);
+      q = query(categoriesRef, where("tipo", "==", tipo), orderBy("nombre", "asc"));
+    } else {
+      q = query(categoriesRef, orderBy("nombre", "asc"));
     }
 
-    const { data: categorias, error } = await query;
-
-    if (error) {
-      throw error;
-    }
+    const snapshot = await getDocs(q);
+    const categorias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     return NextResponse.json({
       status: "success",
@@ -45,28 +44,24 @@ export async function POST(request) {
   try {
     const reqBody = await request.json();
 
-    const { data, error } = await supabase
-      .from("finance_categories")
-      .insert([
-        {
-          nombre: reqBody.nombre,
-          tipo: reqBody.tipo,
-          descripcion: reqBody.descripcion,
-          icono: reqBody.icono,
-          color: reqBody.color,
-        },
-      ])
-      .select();
+    const categoriesRef = collection(db, "finance_categories");
+    const newCategory = {
+      nombre: reqBody.nombre,
+      tipo: reqBody.tipo,
+      descripcion: reqBody.descripcion || null,
+      icono: reqBody.icono || null,
+      color: reqBody.color || null,
+      created_at: new Date().toISOString()
+    };
 
-    if (error) {
-      throw error;
-    }
+    const docRef = await addDoc(categoriesRef, newCategory);
+    const createdData = { id: docRef.id, ...newCategory };
 
     return NextResponse.json(
       {
         status: "success",
         message: "Categoría creada exitosamente",
-        data: data[0],
+        data: createdData,
       },
       { status: 201 }
     );

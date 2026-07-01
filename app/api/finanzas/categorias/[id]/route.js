@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 // GET - Fetch single category
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
     
-    const { data: categoria, error } = await supabase
-      .from("finance_categories")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const categoryRef = doc(db, "finance_categories", id);
+    const categorySnap = await getDoc(categoryRef);
 
-    if (error || !categoria) {
+    if (!categorySnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -24,7 +22,7 @@ export async function GET(request, { params }) {
 
     return NextResponse.json({
       status: "success",
-      data: categoria,
+      data: { id: categorySnap.id, ...categorySnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -45,23 +43,10 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const reqBody = await request.json();
 
-    const { data, error } = await supabase
-      .from("finance_categories")
-      .update({
-          nombre: reqBody.nombre,
-          tipo: reqBody.tipo,
-          descripcion: reqBody.descripcion,
-          icono: reqBody.icono,
-          color: reqBody.color,
-      })
-      .eq("id", id)
-      .select();
-
-    if (error) {
-      throw error;
-    }
+    const categoryRef = doc(db, "finance_categories", id);
+    const categorySnap = await getDoc(categoryRef);
     
-    if (data.length === 0) {
+    if (!categorySnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -71,10 +56,25 @@ export async function PUT(request, { params }) {
       );
     }
 
+    const updates = {
+      nombre: reqBody.nombre,
+      tipo: reqBody.tipo,
+      descripcion: reqBody.descripcion,
+      icono: reqBody.icono,
+      color: reqBody.color,
+      updated_at: new Date().toISOString()
+    };
+
+    // Remove undefined values
+    Object.keys(updates).forEach(key => updates[key] === undefined && delete updates[key]);
+
+    await updateDoc(categoryRef, updates);
+    const updatedSnap = await getDoc(categoryRef);
+
     return NextResponse.json({
       status: "success",
       message: "Categoría actualizada exitosamente",
-      data: data[0],
+      data: { id: updatedSnap.id, ...updatedSnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -94,14 +94,8 @@ export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
     
-    const { error } = await supabase
-      .from("finance_categories")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      throw error;
-    }
+    const categoryRef = doc(db, "finance_categories", id);
+    await deleteDoc(categoryRef);
 
     return NextResponse.json({
       status: "success",

@@ -72,7 +72,7 @@ export const columns = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="ID" />
     ),
-    cell: ({ row }) => <div className="w-[80px]">{row.getValue("id")}</div>,
+    cell: ({ row }) => <div className="w-[80px] font-mono text-xs" title={row.getValue("id")}>#{row.getValue("id")?.substring(0, 6)}</div>,
     enableSorting: false,
     enableHiding: false,
   },

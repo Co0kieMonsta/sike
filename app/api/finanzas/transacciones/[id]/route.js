@@ -1,31 +1,16 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
-import { createClient } from "@supabase/supabase-js";
-
-const getSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (supabaseServiceKey) {
-    return createClient(supabaseUrl, supabaseServiceKey);
-  }
-  return supabase;
-};
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 // GET - Fetch single transaction
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
     
-    const supabaseClient = getSupabaseClient();
-    
-    const { data: transaction, error } = await supabaseClient
-      .from("finance_transactions")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const transRef = doc(db, "finance_transactions", id);
+    const transSnap = await getDoc(transRef);
 
-    if (error || !transaction) {
+    if (!transSnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -35,7 +20,7 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Map metada_pago to metodoPago for frontend consistency
+    const transaction = { id: transSnap.id, ...transSnap.data() };
     const formattedTransaction = {
       ...transaction,
       metodoPago: transaction.metodo_pago,
@@ -63,33 +48,11 @@ export async function PUT(request, { params }) {
   try {
     const { id } = await params;
     const reqBody = await request.json();
-    const supabaseClient = getSupabaseClient();
 
-    console.log(`Updating transaction ${id}. Service Role Key present: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`);
+    const transRef = doc(db, "finance_transactions", id);
+    const transSnap = await getDoc(transRef);
 
-    const { data, error } = await supabaseClient
-      .from("finance_transactions")
-      .update({
-          fecha: reqBody.fecha,
-          tipo: reqBody.tipo,
-          categoria: reqBody.categoria,
-          subcategoria: reqBody.subcategoria,
-          monto: reqBody.monto,
-          metodo_pago: reqBody.metodoPago || reqBody.metodo_pago, // Handle both cases
-          cuenta: reqBody.cuenta,
-          descripcion: reqBody.descripcion,
-          referencia: reqBody.referencia,
-          estado: reqBody.estado,
-          comprobante: reqBody.comprobante,
-      })
-      .eq("id", id)
-      .select();
-
-    if (error) {
-       throw error;
-    }
-    
-    if (data.length === 0) {
+    if (!transSnap.exists()) {
       return NextResponse.json(
         {
           status: "fail",
@@ -99,10 +62,31 @@ export async function PUT(request, { params }) {
       );
     }
 
+    const updates = {
+      fecha: reqBody.fecha,
+      tipo: reqBody.tipo,
+      categoria: reqBody.categoria,
+      subcategoria: reqBody.subcategoria,
+      monto: reqBody.monto,
+      metodo_pago: reqBody.metodoPago || reqBody.metodo_pago,
+      cuenta: reqBody.cuenta,
+      descripcion: reqBody.descripcion,
+      referencia: reqBody.referencia,
+      estado: reqBody.estado,
+      comprobante: reqBody.comprobante,
+      updated_at: new Date().toISOString()
+    };
+
+    // Remove undefined values
+    Object.keys(updates).forEach(key => updates[key] === undefined && delete updates[key]);
+
+    await updateDoc(transRef, updates);
+    const updatedSnap = await getDoc(transRef);
+
     return NextResponse.json({
       status: "success",
       message: "Transacción actualizada exitosamente",
-      data: data[0],
+      data: { id: updatedSnap.id, ...updatedSnap.data() },
     });
   } catch (error) {
     console.log("An error occurred:", error);
@@ -121,18 +105,9 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
-    const supabaseClient = getSupabaseClient();
     
-    console.log(`Deleting transaction ${id}. Service Role Key present: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`);
-
-    const { error } = await supabaseClient
-      .from("finance_transactions")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      throw error;
-    }
+    const transRef = doc(db, "finance_transactions", id);
+    await deleteDoc(transRef);
 
     return NextResponse.json({
       status: "success",

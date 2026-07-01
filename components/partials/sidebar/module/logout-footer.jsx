@@ -3,13 +3,13 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { Icon } from "@iconify/react";
 
 import { useState } from "react";
-import AddBlock from "../common/add-block";
+
 const LogoutFooter = ({ menus }) => {
   const { data: session } = useSession();
 
   return (
     <>
-      <AddBlock />
+
 
       <div className=" bg-default-50 dark:bg-default-200 items-center flex gap-3  px-4 py-2 mt-5">
         <div className="flex-1">

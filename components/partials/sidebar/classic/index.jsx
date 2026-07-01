@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import SingleMenuItem from "./single-menu-item";
 import SubMenuHandler from "./sub-menu-handler";
 import NestedSubMenu from "../common/nested-menus";
-import AddBlock from "../common/add-block";
+
 const ClassicSidebar = ({ trans }) => {
   const { sidebarBg } = useSidebar();
   const [activeSubmenu, setActiveSubmenu] = useState(null);
@@ -148,7 +148,7 @@ const ClassicSidebar = ({ trans }) => {
         </ul>
         {!collapsed && (
           <div className="-mx-2 ">
-            <AddBlock />
+
           </div>
         )}
       </ScrollArea>

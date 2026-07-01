@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { Icon } from "@iconify/react";
 import Image from "next/image";
-import thumbnail from "@/public/images/all-img/thumbnail.png";
+import thumbnail from "@/public/images/all-img/rd-1.jpg";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 const AddBlock = ({
   className,
   image = thumbnail,
-  title = "Storage capacity",
-  desc = " Out of your total storage on Premium Plan, you have used up 40%.",
+  title = "addBlockTest",
+  desc = " descuento 40%.",
 }) => {
   const [openVideo, setOpenVideo] = useState(false);
   return (
@@ -60,7 +60,7 @@ const AddBlock = ({
           <iframe
             width="100%"
             height="315"
-            src="https://www.youtube.com/embed/8D6b3McyhhU?si=zGOlY311c21dR70j"
+            src="https://www.youtube.com"
             title="YouTube video player"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

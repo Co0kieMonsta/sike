@@ -17,7 +17,7 @@ const horizontalHeader = ({ handleOpenSearch }) => {
             </span>
           </Link>
         </div>
-        <button
+        {/* <button
           onClick={handleOpenSearch}
           className=" inline-flex lg:gap-2 lg:mr-0 mr-2 items-center text-default-600 text-sm"
         >
@@ -25,7 +25,7 @@ const horizontalHeader = ({ handleOpenSearch }) => {
             <Search className=" h-4 w-4" />
           </span>
           <span className=" lg:inline-block hidden"> Search...</span>
-        </button>
+        </button> */}
       </div>
   );
 };
