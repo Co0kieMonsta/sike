@@ -53,7 +53,7 @@ export function DataTable({ columns, data, onRefresh, onAddUser, onDeleteSelecte
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 overflow-x-auto w-full">
       <DataTableToolbar 
         table={table} 
         onRefresh={onRefresh} 
