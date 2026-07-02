@@ -97,23 +97,29 @@ const ReportesPage = () => {
     return acc;
   }, {});
 
-  // Monthly trend (last 6 months simulation)
-  const currentDate = new Date();
-  const monthlyData = Array.from({ length: 6 }, (_, i) => {
-    const month = new Date(currentDate.getFullYear(), currentDate.getMonth() - (5 - i), 1);
-    const monthName = month.toLocaleDateString('es-ES', { month: 'short' });
+  // Monthly trend (last 6 months real data)
+  const monthlyFlow = transacciones.reduce((acc, t) => {
+    const d = new Date(t.fecha);
+    const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const label = d.toLocaleDateString('es-ES', { month: 'short' });
     
-    // Simulate data - in real app, filter by month
-    const randomIngresos = Math.random() * 30000 + 20000;
-    const randomEgresos = Math.random() * 25000 + 15000;
+    if (!acc[monthYear]) {
+      acc[monthYear] = { mes: label, sortKey: monthYear, ingresos: 0, egresos: 0, balance: 0 };
+    }
+    if (t.tipo === "ingreso") {
+      acc[monthYear].ingresos += t.monto;
+      acc[monthYear].balance += t.monto;
+    } else {
+      acc[monthYear].egresos += t.monto;
+      acc[monthYear].balance -= t.monto;
+    }
     
-    return {
-      mes: monthName,
-      ingresos: randomIngresos,
-      egresos: randomEgresos,
-      balance: randomIngresos - randomEgresos,
-    };
-  });
+    return acc;
+  }, {});
+
+  const monthlyData = Object.values(monthlyFlow)
+    .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+    .slice(-6);
 
   const exportToPDF = () => {
     try {
