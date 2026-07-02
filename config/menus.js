@@ -7,6 +7,7 @@ import {
   User,
   Application
 } from "@/components/svg";
+import { FileText } from "lucide-react";
 
 export const menusConfig = {
   mainNav: [
@@ -97,6 +98,20 @@ export const menusConfig = {
             icon: Chart,
           },
         ],
+      },
+      {
+        title: "Documentos",
+        icon: ClipBoard,
+        href: "/cotizaciones",
+        isOpen: true,
+        isHide: false,
+        child: [
+          {
+            title: "Cotizaciones",
+            href: "/cotizaciones",
+            icon: FileText,
+          }
+        ]
       }
     ],
   },

@@ -1,73 +1,57 @@
-
-import { supabase } from "@/lib/supabaseClient";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export async function GET(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const { id } = await params;
 
-    const { data, error } = await supabase
-      .from("cotizaciones")
-      .select(`
-        *,
-        detalles_cotizacion (*),
-        created_by_user:created_by(name),
-        updated_by_user:updated_by(name)
-      `)
-      .eq("id", id)
-      .single();
+    const docRef = doc(db, "docs_cotizaciones", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) {
-      return new NextResponse("Quote not found", { status: 404 });
+    if (!docSnap.exists()) {
+      return NextResponse.json(
+        { status: "fail", message: "Quote not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json({
+      status: "success",
+      data: { id: docSnap.id, ...docSnap.data() }
+    });
   } catch (error) {
     console.error("Server error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { status: "fail", message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
   }
 }
 
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const { id } = await params;
 
-    const { error } = await supabase
-      .from("cotizaciones")
-      .delete()
-      .eq("id", id);
+    const docRef = doc(db, "docs_cotizaciones", id);
+    await deleteDoc(docRef);
 
-    if (error) {
-      console.error("Error deleting quote:", error);
-      return new NextResponse(error.message, { status: 500 });
-    }
-
-    return new NextResponse("Deleted successfully", { status: 200 });
+    return NextResponse.json({
+      status: "success",
+      message: "Deleted successfully"
+    });
   } catch (error) {
     console.error("Server error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { status: "fail", message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const { id } = await params;
     const body = await request.json();
     const { 
@@ -84,54 +68,42 @@ export async function PUT(request, { params }) {
     // 1. Calculate new total
     const total = items ? items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0) : 0;
 
-    // 2. Update Cotización
-    const { error: cotError } = await supabase
-      .from("cotizaciones")
-      .update({
-        cliente_nombre,
-        cliente_email,
-        cliente_direccion,
-        fecha,
-        fecha_vencimiento,
-        total,
-        notas,
-        estado,
-        updated_by: session.user.id,
-        updated_at: new Date()
-      })
-      .eq("id", id);
+    // 2. Update Cotización in Firestore
+    const docRef = doc(db, "docs_cotizaciones", id);
+    
+    const updateData = {
+      cliente_nombre,
+      cliente_email: cliente_email || null,
+      cliente_direccion: cliente_direccion || null,
+      fecha: fecha || new Date().toISOString(),
+      fecha_vencimiento: fecha_vencimiento || null,
+      total,
+      notas: notas || null,
+      estado: estado || 'pendiente',
+      updated_by: "USR-001",
+      updated_at: new Date().toISOString()
+    };
 
-    if (cotError) {
-      return new NextResponse(cotError.message, { status: 500 });
-    }
-
-    // 3. Update Items (Delete all and recreate - simplest strategy for now)
     if (items) {
-        // Delete existing
-        await supabase.from("detalles_cotizacion").delete().eq("cotizacion_id", id);
-
-        // Insert new
-        const itemsToInsert = items.map(item => ({
-            cotizacion_id: id,
-            descripcion: item.descripcion,
-            cantidad: item.cantidad,
-            precio_unitario: item.precio_unitario,
-            product_id: item.producto_id || null // Add product_id
-        }));
-
-        const { error: itemsError } = await supabase
-            .from("detalles_cotizacion")
-            .insert(itemsToInsert);
-            
-        if (itemsError) {
-            console.error("Error updating items:", itemsError);
-            return new NextResponse("Error updating items", { status: 500 });
-        }
+      updateData.detalles_cotizacion = items.map(item => ({
+        descripcion: item.descripcion,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        producto_id: item.producto_id || null
+      }));
     }
 
-    return new NextResponse("Updated successfully", { status: 200 });
+    await updateDoc(docRef, updateData);
+
+    return NextResponse.json({
+      status: "success",
+      message: "Updated successfully"
+    });
   } catch (error) {
     console.error("Server error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { status: "fail", message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
   }
 }

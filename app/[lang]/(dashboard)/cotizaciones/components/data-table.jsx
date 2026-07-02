@@ -62,7 +62,7 @@ export function DataTable({ columns, data, onRefresh, onAdd, onDeleteSelected, o
         onDeleteSelected={onDeleteSelected}
         onExport={onExport}
       />
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

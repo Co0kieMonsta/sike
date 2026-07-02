@@ -264,8 +264,8 @@ export function CotizacionForm({ initialData }) {
                     Agregar Ítem
                 </Button>
             </CardHeader>
-            <CardContent className="p-0">
-                <div className="relative w-full overflow-auto">
+            <CardContent className="p-0 overflow-x-auto">
+                <div className="relative w-full min-w-[800px]">
                     <table className="w-full caption-bottom text-sm text-left">
                         <thead className="[&_tr]:border-b">
                             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">

@@ -1,48 +1,40 @@
-
-import { supabase } from "@/lib/supabaseClient";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
 
-// Helper to get admin client for bypassing RLS if needed, 
-// though we enabled public access, it's good practice for backend mutations.
-const supabaseAdmin = supabase; 
-
+// GET - Fetch all cotizaciones
 export async function GET(request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
+    const cotizacionesRef = collection(db, "docs_cotizaciones");
+    
+    // Simplificamos la consulta a Firestore para evitar errores de índices compuestos
+    const q = query(cotizacionesRef, orderBy("created_at", "desc"));
+    const snapshot = await getDocs(q);
 
-    const { data, error } = await supabase
-      .from("cotizaciones")
-      .select(`
-        *,
-        created_by_user:created_by(name),
-        updated_by_user:updated_by(name)
-      `)
-      .order("created_at", { ascending: false });
+    let cotizaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    if (error) {
-      console.error("Error fetching cotizaciones:", error);
-      return new NextResponse(error.message, { status: 500 });
-    }
-
-    return NextResponse.json(data);
+    return NextResponse.json({
+      status: "success",
+      data: cotizaciones,
+      count: cotizaciones.length,
+    });
   } catch (error) {
-    console.error("Server error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("An error occurred:", error);
+    return NextResponse.json(
+      {
+        status: "fail",
+        message: "Error al obtener cotizaciones",
+        error: error.message,
+      },
+      { status: 500 }
+    );
   }
 }
 
+// POST - Create new cotizacion
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     const body = await request.json();
     const { 
       cliente_nombre, 
@@ -51,64 +43,65 @@ export async function POST(request) {
       fecha, 
       fecha_vencimiento, 
       items, 
-      notas 
+      notas,
+      estado 
     } = body;
 
     if (!cliente_nombre || !items || items.length === 0) {
-      return new NextResponse("Missing required fields", { status: 400 });
+      return NextResponse.json(
+        { status: "fail", message: "Missing required fields (cliente_nombre or items)" }, 
+        { status: 400 }
+      );
     }
 
     // 1. Calculate total
     const total = items.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
 
-    // 2. Insert Cotización
-    const { data: cotizacion, error: cotError } = await supabase
-      .from("cotizaciones")
-      .insert({
-        cliente_nombre,
-        cliente_email,
-        cliente_direccion,
-        fecha: fecha || new Date(),
-        fecha_vencimiento,
-        total,
-        notas,
-        created_by: session.user.id,
-        updated_by: session.user.id,
-        estado: 'pendiente'
-      })
-      .select()
-      .single();
+    // 2. Generate a sequential number (in a real app this should use a transaction or counter collection)
+    const cotizacionesRef = collection(db, "docs_cotizaciones");
+    const snapshot = await getDocs(cotizacionesRef);
+    const numero = `COT-${String(snapshot.docs.length + 1).padStart(4, '0')}`;
 
-    if (cotError) {
-      console.error("Error creating cotizacion:", cotError);
-      return new NextResponse(cotError.message, { status: 500 });
-    }
+    const newCotizacion = {
+      numero,
+      cliente_nombre,
+      cliente_email: cliente_email || null,
+      cliente_direccion: cliente_direccion || null,
+      fecha: fecha || new Date().toISOString(),
+      fecha_vencimiento: fecha_vencimiento || null,
+      total,
+      notas: notas || null,
+      detalles_cotizacion: items.map(item => ({
+        descripcion: item.descripcion,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio_unitario,
+        producto_id: item.producto_id || null
+      })),
+      estado: estado || 'pendiente',
+      created_by: "USR-001",
+      created_at: new Date().toISOString()
+    };
 
-    // 3. Insert Items
-    const itemsToInsert = items.map(item => ({
-      cotizacion_id: cotizacion.id,
-      descripcion: item.descripcion,
-      cantidad: item.cantidad,
-      precio_unitario: item.precio_unitario,
-      product_id: item.producto_id || null // Add product_id
-      // total is generated always
-    }));
+    const docRef = await addDoc(cotizacionesRef, newCotizacion);
+    const createdData = { id: docRef.id, ...newCotizacion };
 
-    const { error: itemsError } = await supabase
-      .from("detalles_cotizacion")
-      .insert(itemsToInsert);
-
-    if (itemsError) {
-      console.error("Error creating details:", itemsError);
-      // Ideally we would rollback here, but Supabase HTTP client doesn't support transactions easily.
-      // We could delete the created cotizacion.
-      await supabase.from("cotizaciones").delete().eq("id", cotizacion.id);
-      return new NextResponse("Error creating quote details", { status: 500 });
-    }
-
-    return NextResponse.json(cotizacion);
+    return NextResponse.json(
+      {
+        status: "success",
+        message: "Cotización creada exitosamente",
+        data: createdData,
+      },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("Server error:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    console.error("An error occurred:", error);
+    return NextResponse.json(
+      {
+        status: "fail",
+        message: "Error al crear cotización",
+        error: error.message,
+      },
+      { status: 500 }
+    );
   }
 }
