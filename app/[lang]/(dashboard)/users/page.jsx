@@ -339,18 +339,15 @@ const UsuariosPage = () => {
           <CardTitle className="text-lg">Directorio de Usuarios</CardTitle>
           <CardDescription>Lista completa de miembros de la plataforma</CardDescription>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6">
-          <div className="p-10 text-center text-muted-foreground border-2 border-dashed rounded-md m-4">
-            (DataTable Temporalmente Removido para prueba de Scroll Horizontal)
-          </div>
-          {/* <DataTable
+        <CardContent className="p-0 sm:p-6 overflow-x-auto">
+          <DataTable
             columns={enhancedColumns}
             data={usuarios}
             onRefresh={fetchUsuarios}
             onDeleteSelected={handleBulkDelete}
             onExport={handleExport}
             onImport={handleImport}
-          /> */}
+          />
         </CardContent>
       </Card>
 

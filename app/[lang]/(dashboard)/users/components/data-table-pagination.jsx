@@ -16,7 +16,7 @@ import {
 export function DataTablePagination({ table }) {
   return (
     <div className="flex items-center flex-wrap gap-2 justify-between px-2">
-      <div className="flex-1 text-sm text-muted-foreground whitespace-nowrap">
+      <div className="flex-1 text-sm text-muted-foreground min-w-[150px]">
         {table.getFilteredSelectedRowModel().rows.length} de{" "}
         {table.getFilteredRowModel().rows.length} fila(s) seleccionadas.
       </div>
@@ -41,7 +41,7 @@ export function DataTablePagination({ table }) {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-[100px] items-center justify-center text-sm font-medium text-muted-foreground">
+        <div className="flex w-auto sm:w-[100px] items-center justify-center text-sm font-medium text-muted-foreground">
           Página {table.getState().pagination.pageIndex + 1} de{" "}
           {table.getPageCount()}
         </div>
