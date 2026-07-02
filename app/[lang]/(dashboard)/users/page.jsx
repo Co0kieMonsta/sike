@@ -252,7 +252,25 @@ const UsuariosPage = () => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 w-full">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Users className="h-8 w-8 text-primary" />
+            Gestión de Usuarios
+          </h2>
+          <p className="text-muted-foreground mt-1">
+            Administra los usuarios del sistema, asigna roles y permisos. 
+            Puedes crear, editar, eliminar y cambiar el estado.
+          </p>
+        </div>
+        <Button onClick={handleAddUser} className="w-full sm:w-auto">
+          <Plus className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+          Nuevo Usuario
+        </Button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -314,30 +332,17 @@ const UsuariosPage = () => {
         </Card>
       </div>
 
-      {/* Main Table Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Gestión de Usuarios
-          </CardTitle>
-          <CardDescription>
-            Administra los usuarios del sistema, asigna roles y permisos. 
-            Puedes crear, editar, eliminar y cambiar el estado de los usuarios.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={enhancedColumns}
-            data={usuarios}
-            onRefresh={fetchUsuarios}
-            onAddUser={handleAddUser}
-            onDeleteSelected={handleBulkDelete}
-            onExport={handleExport}
-            onImport={handleImport}
-          />
-        </CardContent>
-      </Card>
+      {/* Main Table */}
+      <div className="w-full">
+        <DataTable
+          columns={enhancedColumns}
+          data={usuarios}
+          onRefresh={fetchUsuarios}
+          onDeleteSelected={handleBulkDelete}
+          onExport={handleExport}
+          onImport={handleImport}
+        />
+      </div>
 
       {/* User Form Dialog */}
       <UserFormDialog
