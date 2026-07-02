@@ -325,7 +325,8 @@ const TransactionsPage = () => {
                   type="date" 
                   value={dateRange.from}
                   onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                  className="w-full text-xs sm:text-sm h-9 sm:h-10"
+                  removeWrapper={true}
+                  className="w-full min-w-0 block appearance-none text-xs sm:text-sm h-9 sm:h-10"
                 />
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
@@ -334,7 +335,8 @@ const TransactionsPage = () => {
                   type="date" 
                   value={dateRange.to}
                   onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                  className="w-full text-xs sm:text-sm h-9 sm:h-10"
+                  removeWrapper={true}
+                  className="w-full min-w-0 block appearance-none text-xs sm:text-sm h-9 sm:h-10"
                 />
               </div>
               {(dateRange.from || dateRange.to) && (
