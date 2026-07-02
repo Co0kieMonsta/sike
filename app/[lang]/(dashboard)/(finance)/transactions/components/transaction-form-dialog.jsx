@@ -127,6 +127,9 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
         className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
+        <button type="button" className="sr-only" tabIndex={0}>
+          Focus trap
+        </button>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditMode ? (
