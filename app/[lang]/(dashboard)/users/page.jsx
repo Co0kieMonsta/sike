@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
 import { UserFormDialog } from "./components/user-form-dialog";
@@ -18,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users, Download, Upload, Trash2 } from "lucide-react";
+import { Users, Download, Upload, Trash2, Plus } from "lucide-react";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
