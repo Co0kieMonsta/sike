@@ -32,8 +32,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil, ArrowRightLeft, Calendar as CalendarIcon } from "lucide-react";
 import { TransactionFormDialog } from "./components/transaction-form-dialog";
+import { TransferFormDialog } from "./components/transfer-form-dialog";
 
 const TransactionsPage = () => {
   const [transacciones, setTransacciones] = useState([]);
@@ -42,8 +43,10 @@ const TransactionsPage = () => {
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
@@ -136,11 +139,65 @@ const TransactionsPage = () => {
     }
   };
 
-  const filteredTransacciones = transacciones.filter((t) =>
-    t.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.cuenta?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleTransferSubmit = async (data) => {
+    setFormLoading(true);
+    try {
+      const origen = cuentas.find(c => c.id === data.origen_id);
+      const destino = cuentas.find(c => c.id === data.destino_id);
+      
+      const egresoData = {
+        tipo: "egreso",
+        monto: data.monto,
+        fecha: data.fecha,
+        descripcion: `[Transferencia a ${destino?.nombre || 'Destino'}] ${data.descripcion}`,
+        categoria_id: "TRANSFERENCIA",
+        cuenta_id: data.origen_id,
+        estado: "completado"
+      };
+
+      const ingresoData = {
+        tipo: "ingreso",
+        monto: data.monto,
+        fecha: data.fecha,
+        descripcion: `[Transferencia desde ${origen?.nombre || 'Origen'}] ${data.descripcion}`,
+        categoria_id: "TRANSFERENCIA",
+        cuenta_id: data.destino_id,
+        estado: "completado"
+      };
+
+      // In a real app this should be a backend transaction
+      await Promise.all([
+        createTransaccion(egresoData),
+        createTransaccion(ingresoData)
+      ]);
+
+      toast.success("Transferencia realizada exitosamente");
+      setTransferDialogOpen(false);
+      await fetchData();
+    } catch (error) {
+      toast.error("Error al realizar transferencia");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const filteredTransacciones = transacciones.filter((t) => {
+    const matchesSearch = 
+      t.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.cuenta?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    let matchesDate = true;
+    if (dateRange.from && dateRange.to) {
+      const tDate = new Date(t.fecha).getTime();
+      const fromDate = new Date(dateRange.from).getTime();
+      // Add 24h to 'to' date to include the whole day
+      const toDate = new Date(dateRange.to).getTime() + 86400000;
+      matchesDate = tDate >= fromDate && tDate <= toDate;
+    }
+
+    return matchesSearch && matchesDate;
+  });
 
   if (loading) {
     return (
@@ -230,28 +287,66 @@ const TransactionsPage = () => {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-          <Button
+              <Button
+                variant="outline"
+                onClick={() => setTransferDialogOpen(true)}
+                size="lg"
+                className="gap-2 text-blue-600 hover:text-blue-700"
+              >
+                <ArrowRightLeft className="h-5 w-5" />
+                <span className="hidden sm:inline">Transferir</span>
+              </Button>
+              <Button
                 onClick={() => handleAddTransaction()}
                 size="lg"
                 className="gap-2"
-          >
+              >
                 <Plus className="h-5 w-5" />
                 <span className="hidden sm:inline">Nueva Transacción</span>
                 <span className="sm:hidden">Nuevo</span>
-            </Button>
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <div className="flex items-center gap-2 mb-4 px-4 sm:px-0 pt-4 sm:pt-0">
-            <div className="relative w-full max-w-sm">
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 px-4 sm:px-0 pt-4 sm:pt-0">
+            <div className="relative w-full sm:w-[300px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por descripción, categoría o cuenta..."
+                placeholder="Buscar por descripción..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
+                className="pl-8 w-full"
               />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center gap-2 flex-1 sm:flex-none">
+                <span className="text-sm text-muted-foreground">Desde:</span>
+                <Input 
+                  type="date" 
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                  className="w-full sm:w-auto"
+                />
+              </div>
+              <div className="flex items-center gap-2 flex-1 sm:flex-none">
+                <span className="text-sm text-muted-foreground">Hasta:</span>
+                <Input 
+                  type="date" 
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                  className="w-full sm:w-auto"
+                />
+              </div>
+              {(dateRange.from || dateRange.to) && (
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setDateRange({ from: "", to: "" })}
+                  className="px-2 text-muted-foreground hover:text-destructive"
+                >
+                  Limpiar
+                </Button>
+              )}
             </div>
           </div>
 
@@ -355,6 +450,15 @@ const TransactionsPage = () => {
         isLoading={formLoading}
         cuentas={cuentas}
         categorias={categorias}
+      />
+
+      {/* Transfer Form Dialog */}
+      <TransferFormDialog
+        open={transferDialogOpen}
+        onClose={() => setTransferDialogOpen(false)}
+        onSubmit={handleTransferSubmit}
+        isLoading={formLoading}
+        cuentas={cuentas}
       />
 
       {/* Delete Confirmation Dialog */}
