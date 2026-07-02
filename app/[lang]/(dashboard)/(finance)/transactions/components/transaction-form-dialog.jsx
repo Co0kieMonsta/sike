@@ -123,7 +123,10 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+        className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditMode ? (
@@ -157,7 +160,7 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                       Fecha
                     </FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input type="date" className="w-full" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
