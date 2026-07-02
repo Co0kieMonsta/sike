@@ -22,13 +22,15 @@ export default async function RootLayout({ children, params }) {
   const { lang } = await params;
   return (
     <html lang={lang} suppressHydrationWarning>
-      <AuthProvider>
+      <body className={`${inter.className} overflow-x-hidden`}>
+        <AuthProvider>
         <TanstackProvider>
           <Providers>
             <DirectionProvider lang={lang}>{children}</DirectionProvider>
           </Providers>
         </TanstackProvider>
       </AuthProvider>
+      </body>
     </html>
   );
 }
