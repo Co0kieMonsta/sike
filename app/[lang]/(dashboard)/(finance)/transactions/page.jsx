@@ -291,7 +291,7 @@ const TransactionsPage = () => {
                 variant="outline"
                 onClick={() => setTransferDialogOpen(true)}
                 size="lg"
-                className="gap-2 text-blue-600 hover:text-blue-700"
+                className="gap-2 text-blue-600 hover:text-blue-700 px-3 sm:px-8"
               >
                 <ArrowRightLeft className="h-5 w-5" />
                 <span className="hidden sm:inline">Transferir</span>
@@ -299,11 +299,10 @@ const TransactionsPage = () => {
               <Button
                 onClick={() => handleAddTransaction()}
                 size="lg"
-                className="gap-2"
+                className="gap-2 px-3 sm:px-8"
               >
                 <Plus className="h-5 w-5" />
                 <span className="hidden sm:inline">Nueva Transacción</span>
-                <span className="sm:hidden">Nuevo</span>
               </Button>
             </div>
           </div>
@@ -319,30 +318,30 @@ const TransactionsPage = () => {
                 className="pl-8 w-full"
               />
             </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="flex items-center gap-2 flex-1 sm:flex-none">
-                <span className="text-sm text-muted-foreground">Desde:</span>
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-0">Desde:</span>
                 <Input 
                   type="date" 
                   value={dateRange.from}
                   onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                  className="w-full sm:w-auto"
+                  className="w-full text-xs sm:text-sm h-9 sm:h-10"
                 />
               </div>
-              <div className="flex items-center gap-2 flex-1 sm:flex-none">
-                <span className="text-sm text-muted-foreground">Hasta:</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground ml-1 sm:ml-0">Hasta:</span>
                 <Input 
                   type="date" 
                   value={dateRange.to}
                   onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                  className="w-full sm:w-auto"
+                  className="w-full text-xs sm:text-sm h-9 sm:h-10"
                 />
               </div>
               {(dateRange.from || dateRange.to) && (
                 <Button 
                   variant="ghost" 
                   onClick={() => setDateRange({ from: "", to: "" })}
-                  className="px-2 text-muted-foreground hover:text-destructive"
+                  className="col-span-2 sm:col-span-1 px-2 text-muted-foreground hover:text-destructive h-9 sm:h-10 mt-1 sm:mt-0"
                 >
                   Limpiar
                 </Button>
