@@ -3,10 +3,16 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "./components/data-table";
-import { columns } from "./components/columns";
-import { TransactionFormDialog } from "./components/transaction-form-dialog";
-import { DataTableRowActions } from "./components/data-table-row-actions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   getTransacciones, 
   createTransaccion, 
@@ -26,7 +32,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil } from "lucide-react";
+import { TransactionFormDialog } from "./components/transaction-form-dialog";
 
 const TransactionsPage = () => {
   const [transacciones, setTransacciones] = useState([]);
@@ -36,10 +43,7 @@ const TransactionsPage = () => {
   const [loading, setLoading] = useState(true);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [transactionToDelete, setTransactionToDelete] = useState(null);
-  const [transactionsToDelete, setTransactionsToDelete] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
   const fetchData = async () => {
@@ -130,75 +134,11 @@ const TransactionsPage = () => {
     }
   };
 
-  const handleBulkDelete = (selectedRows) => {
-    setTransactionsToDelete(selectedRows.map(row => row.original));
-    setBulkDeleteDialogOpen(true);
-  };
-
-  const confirmBulkDelete = async () => {
-    try {
-      const deletePromises = transactionsToDelete.map(t => deleteTransaccion(t.id));
-      await Promise.all(deletePromises);
-      
-      toast.success(`${transactionsToDelete.length} transacción(es) eliminada(s)`);
-      await fetchData();
-    } catch (error) {
-      toast.error("Error al eliminar transacciones");
-    } finally {
-      setBulkDeleteDialogOpen(false);
-      setTransactionsToDelete([]);
-    }
-  };
-
-  const handleExport = () => {
-    try {
-      const dataStr = JSON.stringify(transacciones, null, 2);
-      const dataBlob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `transacciones_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast.success("Transacciones exportadas exitosamente");
-    } catch (error) {
-      toast.error("Error al exportar transacciones");
-    }
-  };
-
-  const handleChangeStatus = async (transaction, newStatus) => {
-    try {
-      const response = await updateTransaccion(transaction.id, { ...transaction, estado: newStatus });
-      if (response.status === "success") {
-        toast.success("Estado actualizado exitosamente");
-        await fetchData();
-      } else {
-        toast.error(response.message || "Error al actualizar estado");
-      }
-    } catch (error) {
-      toast.error("Error al actualizar estado");
-    }
-  };
-
-  const enhancedColumns = columns.map((col) => {
-    if (col.id === "actions") {
-      return {
-        ...col,
-        cell: ({ row }) => (
-          <DataTableRowActions
-            row={row}
-            onEdit={handleEditTransaction}
-            onDelete={handleDeleteTransaction}
-            onChangeStatus={handleChangeStatus}
-          />
-        ),
-      };
-    }
-    return col;
-  });
+  const filteredTransacciones = transacciones.filter((t) =>
+    t.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.categoria?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.cuenta?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -300,16 +240,104 @@ const TransactionsPage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <DataTable
-            columns={enhancedColumns}
-            data={transacciones}
-            onRefresh={fetchData}
-            onAddTransaction={handleAddTransaction}
-            onDeleteSelected={handleBulkDelete}
-            onExport={handleExport}
-            summary={summary}
-          />
+        <CardContent className="p-0 sm:p-6">
+          <div className="flex items-center gap-2 mb-4 px-4 sm:px-0 pt-4 sm:pt-0">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por descripción, categoría o cuenta..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Cuenta</TableHead>
+                  <TableHead>Descripción</TableHead>
+                  <TableHead className="text-right">Monto</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTransacciones.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                      No se encontraron transacciones.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredTransacciones.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="text-sm">
+                          {new Date(t.fecha).toLocaleDateString('es-ES', { 
+                            day: '2-digit', month: 'short', year: 'numeric' 
+                          })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2 whitespace-nowrap">
+                          {t.tipo === "ingreso" ? (
+                            <ArrowUpCircle className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <ArrowDownCircle className="h-4 w-4 text-red-600" />
+                          )}
+                          <Badge variant="outline" color={t.tipo === "ingreso" ? "success" : "destructive"}>
+                            {t.tipo === "ingreso" ? "Ingreso" : "Egreso"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col whitespace-nowrap">
+                          <span className="font-medium">{t.categoria}</span>
+                          {t.subcategoria && (
+                            <span className="text-xs text-muted-foreground">{t.subcategoria}</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
+                        {t.cuenta}
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-[300px] truncate" title={t.descripcion}>
+                          {t.descripcion}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold whitespace-nowrap">
+                        <span className={t.tipo === "ingreso" ? "text-green-600" : "text-red-600"}>
+                          {t.tipo === "ingreso" ? "+" : "-"} {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'PEN' }).format(t.monto)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="soft" color={t.estado === "completado" ? "success" : t.estado === "pendiente" ? "warning" : "secondary"} className="capitalize whitespace-nowrap">
+                          {t.estado}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditTransaction(t)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteTransaction(t)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -355,33 +383,7 @@ const TransactionsPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Delete Confirmation Dialog */}
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-destructive" />
-              ¿Eliminar múltiples transacciones?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente{" "}
-              <span className="font-semibold">{transactionsToDelete.length} transacción(es)</span> del sistema.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setTransactionsToDelete([])}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmBulkDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              <Trash2 className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-              Eliminar {transactionsToDelete.length} transacción(es)
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 };
