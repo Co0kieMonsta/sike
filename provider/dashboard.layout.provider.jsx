@@ -182,7 +182,7 @@ const LayoutWrapper = ({ children, isMobile, setOpen, open, location }) => {
           duration: 0.5,
         }}
       >
-        <main>{children}</main>
+        <main className="w-full max-w-[100vw] overflow-x-hidden">{children}</main>
       </motion.div>
 
       <MobileSidebar className="left-[300px]" />
