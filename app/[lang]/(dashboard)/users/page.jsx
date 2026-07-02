@@ -3,10 +3,17 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "./components/data-table";
-import { columns } from "./components/columns";
-import { UserFormDialog } from "./components/user-form-dialog";
-import { DataTableRowActions } from "./components/data-table-row-actions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { getUsuarios, createUsuario, updateUsuario, deleteUsuario } from "@/config/usuarios.config";
 import { toast } from "react-hot-toast";
 import {
@@ -19,17 +26,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users, Download, Upload, Trash2, Plus } from "lucide-react";
+import { Users, Download, Upload, Trash2, Plus, Search, Pencil } from "lucide-react";
+import { UserFormDialog } from "./components/user-form-dialog";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [usersToDelete, setUsersToDelete] = useState([]);
+
   const [formLoading, setFormLoading] = useState(false);
 
   // Fetch usuarios
@@ -122,124 +130,11 @@ const UsuariosPage = () => {
     }
   };
 
-  // Handle bulk delete
-  const handleBulkDelete = (selectedRows) => {
-    setUsersToDelete(selectedRows.map(row => row.original));
-    setBulkDeleteDialogOpen(true);
-  };
-
-  // Confirm bulk delete
-  const confirmBulkDelete = async () => {
-    try {
-      const deletePromises = usersToDelete.map(user => deleteUsuario(user.id));
-      await Promise.all(deletePromises);
-      
-      toast.success(`${usersToDelete.length} usuario(s) eliminado(s) exitosamente`);
-      await fetchUsuarios();
-    } catch (error) {
-      toast.error("Error al eliminar usuarios");
-    } finally {
-      setBulkDeleteDialogOpen(false);
-      setUsersToDelete([]);
-    }
-  };
-
-  // Handle export
-  const handleExport = () => {
-    try {
-      const dataStr = JSON.stringify(usuarios, null, 2);
-      const dataBlob = new Blob([dataStr], { type: "application/json" });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `usuarios_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast.success("Usuarios exportados exitosamente");
-    } catch (error) {
-      toast.error("Error al exportar usuarios");
-    }
-  };
-
-  // Handle import
-  const handleImport = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      try {
-        const text = await file.text();
-        const importedUsers = JSON.parse(text);
-        
-        if (!Array.isArray(importedUsers)) {
-          toast.error("Formato de archivo inválido");
-          return;
-        }
-
-        // Here you would typically call an API to bulk import
-        // For now, we'll just show a success message
-        toast.success(`Listo para importar ${importedUsers.length} usuarios`);
-      } catch (error) {
-        toast.error("Error al importar usuarios");
-      }
-    };
-    input.click();
-  };
-
-  // Handle change status
-  const handleChangeStatus = async (user, newStatus) => {
-    try {
-      const response = await updateUsuario(user.id, { ...user, status: newStatus });
-      if (response.status === "success") {
-        toast.success("Estado actualizado exitosamente");
-        await fetchUsuarios();
-      } else {
-        toast.error(response.message || "Error al actualizar estado");
-      }
-    } catch (error) {
-      toast.error("Error al actualizar estado");
-    }
-  };
-
-  // Handle change role
-  const handleChangeRole = async (user, newRole) => {
-    try {
-      const response = await updateUsuario(user.id, { ...user, role: newRole });
-      if (response.status === "success") {
-        toast.success("Rol actualizado exitosamente");
-        await fetchUsuarios();
-      } else {
-        toast.error(response.message || "Error al actualizar rol");
-      }
-    } catch (error) {
-      toast.error("Error al actualizar rol");
-    }
-  };
-
-  // Enhance columns with action handlers
-  const enhancedColumns = columns.map((col) => {
-    if (col.id === "actions") {
-      return {
-        ...col,
-        cell: ({ row }) => (
-          <DataTableRowActions
-            row={row}
-            onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
-            onChangeStatus={handleChangeStatus}
-            onChangeRole={handleChangeRole}
-          />
-        ),
-      };
-    }
-    return col;
-  });
+  const filteredUsuarios = usuarios.filter((user) =>
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -253,7 +148,7 @@ const UsuariosPage = () => {
   }
 
   return (
-    <div className="space-y-5 w-full max-w-[100vw] sm:max-w-full overflow-x-hidden">
+    <div className="space-y-5 w-full">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -339,15 +234,85 @@ const UsuariosPage = () => {
           <CardTitle className="text-lg">Directorio de Usuarios</CardTitle>
           <CardDescription>Lista completa de miembros de la plataforma</CardDescription>
         </CardHeader>
-        <CardContent className="p-0 sm:p-6 overflow-x-auto">
-          <DataTable
-            columns={enhancedColumns}
-            data={usuarios}
-            onRefresh={fetchUsuarios}
-            onDeleteSelected={handleBulkDelete}
-            onExport={handleExport}
-            onImport={handleImport}
-          />
+        <CardContent className="p-0 sm:p-6">
+          <div className="flex items-center gap-2 mb-4 px-4 sm:px-0 pt-4 sm:pt-0">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuarios por nombre, email o rol..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+          </div>
+          
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Usuario</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Departamento</TableHead>
+                  <TableHead>Posición</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsuarios.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                      No se encontraron usuarios.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredUsuarios.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3 min-w-[200px]">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={user.image?.src || user.image} alt={user.name} />
+                            <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="font-medium whitespace-nowrap">{user.name}</span>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">{user.email}</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" color={user.role === 'admin' ? 'destructive' : user.role === 'manager' ? 'info' : 'default'} className="capitalize whitespace-nowrap">
+                          {user.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="soft" color={user.status === 'active' ? 'success' : user.status === 'inactive' ? 'warning' : 'secondary'} className="capitalize whitespace-nowrap">
+                          {user.status === 'active' ? 'Activo' : user.status === 'inactive' ? 'Inactivo' : 'Pendiente'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{user.department || '-'}</TableCell>
+                      <TableCell>
+                        <div className="max-w-[200px] truncate" title={user.position}>
+                          {user.position || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUser(user)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -393,46 +358,7 @@ const UsuariosPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Bulk Delete Confirmation Dialog */}
-      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-destructive" />
-              ¿Eliminar múltiples usuarios?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente{" "}
-              <span className="font-semibold">{usersToDelete.length} usuario(s)</span> del
-              sistema.
-              {usersToDelete.length > 0 && (
-                <div className="mt-3 max-h-40 overflow-y-auto rounded-md border p-2">
-                  <ul className="space-y-1 text-sm">
-                    {usersToDelete.map((user) => (
-                      <li key={user.id} className="flex items-center gap-2">
-                        <span className="text-muted-foreground">•</span>
-                        {user.name} ({user.email})
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setUsersToDelete([])}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmBulkDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              <Trash2 className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-              Eliminar {usersToDelete.length} usuario(s)
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 };
