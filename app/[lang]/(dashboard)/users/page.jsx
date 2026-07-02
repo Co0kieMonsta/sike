@@ -333,17 +333,23 @@ const UsuariosPage = () => {
         </Card>
       </div>
 
-      {/* Main Table */}
-      <div className="w-full">
-        <DataTable
-          columns={enhancedColumns}
-          data={usuarios}
-          onRefresh={fetchUsuarios}
-          onDeleteSelected={handleBulkDelete}
-          onExport={handleExport}
-          onImport={handleImport}
-        />
-      </div>
+      {/* Contenedor de Tabla con Restricción Absoluta */}
+      <Card className="w-full max-w-full overflow-hidden border-0 sm:border">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-lg">Directorio de Usuarios</CardTitle>
+          <CardDescription>Lista completa de miembros de la plataforma</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 sm:p-6 overflow-x-auto">
+          <DataTable
+            columns={enhancedColumns}
+            data={usuarios}
+            onRefresh={fetchUsuarios}
+            onDeleteSelected={handleBulkDelete}
+            onExport={handleExport}
+            onImport={handleImport}
+          />
+        </CardContent>
+      </Card>
 
       {/* User Form Dialog */}
       <UserFormDialog

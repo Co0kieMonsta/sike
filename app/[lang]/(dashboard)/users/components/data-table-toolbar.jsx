@@ -29,7 +29,7 @@ export function DataTableToolbar({ table, onRefresh, onAddUser, onDeleteSelected
             onChange={(event) =>
               table.getColumn("name")?.setFilterValue(event.target.value)
             }
-            className="h-9 min-w-[200px] max-w-sm"
+            className="h-9 w-full sm:w-[200px] lg:max-w-sm"
           />
 
           {table.getColumn("status") && (
