@@ -455,7 +455,7 @@ const FinanceDashboard = () => {
               </Button>
             </Link>
             
-            <Link href="/finance/cuentas">
+            <Link href="/cuentas">
               <Button variant="outline" className="w-full justify-start h-auto py-4">
                 <div className="flex items-center gap-3">
                   <Wallet className="h-5 w-5" />
@@ -467,7 +467,7 @@ const FinanceDashboard = () => {
               </Button>
             </Link>
 
-            <Link href="/finance/categorias">
+            <Link href="/categorias">
               <Button variant="outline" className="w-full justify-start h-auto py-4">
                 <div className="flex items-center gap-3">
                   <PiggyBank className="h-5 w-5" />
@@ -479,7 +479,7 @@ const FinanceDashboard = () => {
               </Button>
             </Link>
 
-            <Link href="/finance/reportes">
+            <Link href="/reportes">
               <Button variant="outline" className="w-full justify-start h-auto py-4">
                 <div className="flex items-center gap-3">
                   <BarChart3 className="h-5 w-5" />

@@ -160,7 +160,7 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                       Fecha
                     </FormLabel>
                     <FormControl>
-                      <Input type="date" removeWrapper={true} className="w-full min-w-0 block appearance-none" {...field} />
+                      <Input type="date" removeWrapper={true} className="w-full min-w-0 flex items-center appearance-none" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
