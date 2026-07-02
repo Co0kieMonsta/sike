@@ -72,9 +72,6 @@ export function TransferFormDialog({
         className="sm:max-w-[500px]"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <button type="button" className="sr-only" tabIndex={0}>
-          Focus trap
-        </button>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5 text-blue-600" />

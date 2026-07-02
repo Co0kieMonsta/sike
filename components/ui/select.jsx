@@ -46,10 +46,10 @@ const selectVariants = cva(
         xl: "rounded-[20px]",
       },
       size: {
-        sm: "h-8 text-xs",
-        md: "h-9 text-xs",
-        lg: "h-10 text-sm",
-        xl: "h-12 text-base",
+        sm: "h-8 text-[16px] md:text-xs",
+        md: "h-9 text-[16px] md:text-xs",
+        lg: "h-10 text-[16px] md:text-sm",
+        xl: "h-12 text-[16px] md:text-base",
       },
     },
     compoundVariants: [

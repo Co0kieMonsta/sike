@@ -44,10 +44,10 @@ export const inputVariants = cva(
         xl: "rounded-[20px]",
       },
       size: {
-        sm: "h-8 text-xs read-only:leading-8",
-        md: "h-9 text-xs read-only:leading-9",
-        lg: "h-10 text-sm read-only:leading-10",
-        xl: "h-12 text-base read-only:leading-[48px]",
+        sm: "h-8 text-[16px] md:text-xs read-only:leading-8",
+        md: "h-9 text-[16px] md:text-xs read-only:leading-9",
+        lg: "h-10 text-[16px] md:text-sm read-only:leading-10",
+        xl: "h-12 text-[16px] md:text-base read-only:leading-[48px]",
       },
     },
     compoundVariants: [
