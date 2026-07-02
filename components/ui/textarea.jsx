@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { cva } from "class-variance-authority";
 
 export const textareaVariants = cva(
-  "flex flex-1 bg-background w-full min-h-[80px]   px-3 py-[10px] text-sm  file:border-0 file:bg-transparent file:text-sm file:font-medium  read-only:bg-background  disabled:cursor-not-allowed disabled:opacity-50  transition duration-300 ",
+  "flex flex-1 bg-background w-full min-h-[80px]   px-3 py-[10px] text-[16px] md:text-sm  file:border-0 file:bg-transparent file:text-sm file:font-medium  read-only:bg-background  disabled:cursor-not-allowed disabled:opacity-50  transition duration-300 ",
   {
     variants: {
       color: {
