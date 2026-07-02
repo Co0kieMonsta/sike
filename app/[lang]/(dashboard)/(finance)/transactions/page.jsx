@@ -44,6 +44,8 @@ const TransactionsPage = () => {
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
 
   const fetchData = async () => {
