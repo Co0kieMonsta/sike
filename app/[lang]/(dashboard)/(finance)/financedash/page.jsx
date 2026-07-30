@@ -56,8 +56,8 @@ const FinanceDashboard = () => {
       ]);
 
       if (transRes.status === "success") {
-        setTransacciones(transRes.data);
-        setSummary(transRes.summary);
+        setTransacciones(transRes.data || []);
+        setSummary(transRes.summary || {});
       }
       if (cuentasRes.status === "success") setCuentas(cuentasRes.data);
       if (categoriasRes.status === "success") setCategorias(categoriasRes.data);
