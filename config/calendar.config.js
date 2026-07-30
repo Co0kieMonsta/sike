@@ -6,40 +6,44 @@ export const getEvents = async (selectedCategory) => {
   try {
     const calendarsRef = collection(db, "docs_calendars");
     const snapshot = await getDocs(calendarsRef);
-    const events = snapshot.docs.map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        title: data.title,
-        start: data.start_date,
-        end: data.end_date,
-        allDay: data.all_day,
-        extendedProps: {
-          calendar: data.calendar_label,
-          description: data.description,
-          vehiculo: data.vehiculo,
-        },
-      };
-    });
+    const events = snapshot.docs
+      .filter((d) => d.data().start_date)
+      .map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          title: data.title,
+          start: data.start_date,
+          end: data.end_date,
+          allDay: data.all_day,
+          extendedProps: {
+            calendar: data.calendar_label,
+            description: data.description,
+            vehiculo: data.vehiculo,
+          },
+        };
+      });
 
     const projectsRef = collection(db, "projects");
     const projectsSnapshot = await getDocs(projectsRef);
-    const projectEvents = projectsSnapshot.docs.map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        title: `🔧 [Proyecto] ${data.title}`,
-        start: data.startDate,
-        end: data.endDate || data.startDate,
-        allDay: true,
-        extendedProps: {
-          calendar: "project",
-          description: data.description,
-          vehiculo: data.carName,
-          isProject: true
-        },
-      };
-    });
+    const projectEvents = projectsSnapshot.docs
+      .filter((d) => d.data().startDate)
+      .map((d) => {
+        const data = d.data();
+        return {
+          id: d.id,
+          title: `🔧 [Proyecto] ${data.title}`,
+          start: data.startDate,
+          end: data.endDate || data.startDate,
+          allDay: true,
+          extendedProps: {
+            calendar: "project",
+            description: data.description,
+            vehiculo: data.carName,
+            isProject: true
+          },
+        };
+      });
 
     return { status: "success", data: [...events, ...projectEvents] };
   } catch (error) {
@@ -49,13 +53,43 @@ export const getEvents = async (selectedCategory) => {
 
 export const getCategories = async () => {
   try {
-    const categoriesRef = collection(db, "calendars_categories");
-    const snapshot = await getDocs(categoriesRef);
-    const categories = snapshot.docs.map((doc) => ({
-      value: doc.data().value,
-      label: doc.data().label,
-      className: doc.data().className,
-    }));
+    const categories = [
+      {
+        label: "Business",
+        value: "business",
+        className: "data-[state=checked]:bg-primary border-primary",
+      },
+      {
+        label: "Personal",
+        value: "personal",
+        className: "data-[state=checked]:bg-success border-success",
+      },
+      {
+        label: "Holiday",
+        value: "holiday",
+        className: "data-[state=checked]:bg-destructive  border-destructive",
+      },
+      {
+        label: "Family",
+        value: "family",
+        className: "data-[state=checked]:bg-info border-info",
+      },
+      {
+        label: "Meeting",
+        value: "meeting",
+        className: "data-[state=checked]:bg-warning border-warning",
+      },
+      {
+        label: "Etc",
+        value: "etc",
+        className: "data-[state=checked]:bg-info border-info",
+      },
+      {
+        label: "Proyecto",
+        value: "project",
+        className: "data-[state=checked]:bg-purple-500 border-purple-500",
+      },
+    ];
     return { status: "success", data: categories };
   } catch (error) {
     return { status: "error", message: error.message };
