@@ -1,87 +1,130 @@
 import { api } from "@/config/axios.config";
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, getDoc } from "firebase/firestore";
 
 // --- Categories ---
 export const getCategories = async () => {
     try {
-        const response = await api.get("/inventory/categories");
-        return { status: "success", data: response.data.data };
+        const snapshot = await getDocs(collection(db, "inventory_categories"));
+        const categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return { status: "success", data: categories };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const createCategory = async (data) => {
     try {
-        const response = await api.post("/inventory/categories", data);
-        return { status: "success", data: response.data.data };
+        const payload = { ...data, created_at: new Date().toISOString() };
+        const docRef = await addDoc(collection(db, "inventory_categories"), payload);
+        return { status: "success", data: { id: docRef.id, ...payload } };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const updateCategory = async (id, data) => {
     try {
-        const response = await api.put(`/inventory/categories/${id}`, data);
-        return { status: "success", data: response.data };
+        await updateDoc(doc(db, "inventory_categories", id), data);
+        return { status: "success", data };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const deleteCategory = async (id) => {
     try {
-        const response = await api.delete(`/inventory/categories/${id}`);
-        return { status: "success", data: response.data };
+        await deleteDoc(doc(db, "inventory_categories", id));
+        return { status: "success" };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 // --- Products ---
 export const getProducts = async () => {
     try {
-        const response = await api.get("/inventory/products");
-        return { status: "success", data: response.data.data };
+        const productsRef = collection(db, "inventory_products");
+        const q = query(productsRef, orderBy("created_at", "desc"));
+        const snapshot = await getDocs(q);
+        
+        let products = await Promise.all(snapshot.docs.map(async (docSnap) => {
+            let productData = { id: docSnap.id, ...docSnap.data() };
+            if (productData.category_id) {
+                try {
+                    const catSnap = await getDoc(doc(db, "inventory_categories", productData.category_id));
+                    if(catSnap.exists()) {
+                        productData.categoryName = catSnap.data().name;
+                    }
+                } catch(e) {}
+            }
+            return productData;
+        }));
+        
+        return { status: "success", data: products };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const getProductById = async (id) => {
     try {
-        const response = await api.get(`/inventory/products/${id}`);
-        return { status: "success", data: response.data.data };
+        const docSnap = await getDoc(doc(db, "inventory_products", id));
+        if (docSnap.exists()) {
+            return { status: "success", data: { id: docSnap.id, ...docSnap.data() } };
+        } else {
+            return { status: "fail", message: "Product not found" };
+        }
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const createProduct = async (data) => {
     try {
-        const response = await api.post("/inventory/products", data);
-        return { status: "success", data: response.data.data };
+        const { name, sku, brand, category_id, price, cost, stock, location, status, description, imageUrl } = data;
+        const newProduct = {
+            name, sku: sku || null, brand: brand || null, category_id,
+            price: Number(price), cost: cost ? Number(cost) : 0, stock: stock ? Number(stock) : 0,
+            location: location || null, status: status || 'active', description: description || null,
+            imageUrl: imageUrl || null, created_by: "USR-001", created_at: new Date().toISOString()
+        };
+        const docRef = await addDoc(collection(db, "inventory_products"), newProduct);
+        const createdData = { id: docRef.id, ...newProduct };
+        
+        if (newProduct.stock > 0) {
+            await addDoc(collection(db, "inventory_movements"), {
+                productId: docRef.id, type: "restock", quantity: newProduct.stock,
+                oldStock: 0, newStock: newProduct.stock, addedAt: new Date().toISOString()
+            });
+        }
+        
+        return { status: "success", data: createdData };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const updateProduct = async (id, data) => {
     try {
-        const response = await api.put(`/inventory/products/${id}`, data);
-        return { status: "success", data: response.data };
+        const updatePayload = { ...data };
+        if (updatePayload.price !== undefined) updatePayload.price = Number(updatePayload.price);
+        if (updatePayload.cost !== undefined) updatePayload.cost = Number(updatePayload.cost);
+        if (updatePayload.stock !== undefined) updatePayload.stock = Number(updatePayload.stock);
+        
+        await updateDoc(doc(db, "inventory_products", id), updatePayload);
+        return { status: "success", data: updatePayload };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const deleteProduct = async (id) => {
     try {
-        const response = await api.delete(`/inventory/products/${id}`);
-        return { status: "success", data: response.data };
+        await deleteDoc(doc(db, "inventory_products", id));
+        return { status: "success" };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
