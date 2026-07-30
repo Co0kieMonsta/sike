@@ -52,7 +52,7 @@ const ProjectsPage = () => {
     };
 
     const handleEdit = (project) => {
-        router.push(`/projects/${project.id}`);
+        router.push(`/projects/${project.id}/editar`);
     };
 
     const handleView = (project) => {
