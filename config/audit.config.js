@@ -88,12 +88,17 @@ export const logAction = async (module, entityId, action, oldData = null, newDat
 export const getEntityHistory = async (entityId) => {
     try {
         const logsRef = collection(db, "audit_logs");
-        const q = query(logsRef, where("entityId", "==", entityId), orderBy("timestamp", "desc"));
+        // We query only by entityId to avoid requiring a composite index in Firestore.
+        // Sorting is done in-memory.
+        const q = query(logsRef, where("entityId", "==", entityId));
         const snapshot = await getDocs(q);
         
+        const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
         return {
             status: "success",
-            data: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            data: logs
         };
     } catch (error) {
         return { status: "error", message: error.message };
