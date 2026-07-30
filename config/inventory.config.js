@@ -194,36 +194,81 @@ export const getProductUsageHistory = async (productId) => {
 // --- Assets ---
 export const getAssets = async () => {
     try {
-        const response = await api.get("/inventory/assets");
-        return { status: "success", data: response.data.data };
+        const assetsRef = collection(db, "inventory_assets");
+        const q = query(assetsRef, orderBy("created_at", "desc"));
+        const snapshot = await getDocs(q);
+
+        let assets = await Promise.all(snapshot.docs.map(async (docSnap) => {
+            let assetData = { id: docSnap.id, ...docSnap.data() };
+            if (assetData.category_id) {
+                try {
+                    const catSnap = await getDoc(doc(db, "inventory_categories", assetData.category_id));
+                    if(catSnap.exists()) {
+                        assetData.categoryName = catSnap.data().name;
+                    }
+                } catch(e) {}
+            }
+            return assetData;
+        }));
+
+        return { status: "success", data: assets };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const createAsset = async (data) => {
     try {
-        const response = await api.post("/inventory/assets", data);
-        return { status: "success", data: response.data.data };
+        const { name, serial_number, brand, model, category_id, purchase_price, purchase_date, location, status, description, assigned_to, imageUrl } = data;
+        const newAsset = {
+            name, serial_number: serial_number || null, brand: brand || null, model: model || null,
+            category_id: category_id || null, purchase_price: purchase_price ? Number(purchase_price) : 0,
+            purchase_date: purchase_date || null, location: location || null, status: status || 'operativo',
+            description: description || null, assigned_to: assigned_to || null, imageUrl: imageUrl || null,
+            created_by: auth.currentUser ? auth.currentUser.uid : "anonymous", created_at: new Date().toISOString()
+        };
+
+        const docRef = await addDoc(collection(db, "inventory_assets"), newAsset);
+        const createdData = { id: docRef.id, ...newAsset };
+        
+        await logAction("inventory_assets", docRef.id, "CREATE", null, createdData);
+        
+        return { status: "success", data: createdData };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const updateAsset = async (id, data) => {
     try {
-        const response = await api.put(`/inventory/assets/${id}`, data);
-        return { status: "success", data: response.data };
+        const updatePayload = { ...data };
+        if (updatePayload.purchase_price !== undefined) updatePayload.purchase_price = Number(updatePayload.purchase_price);
+        updatePayload.updated_at = new Date().toISOString();
+        
+        const oldDoc = await getDoc(doc(db, "inventory_assets", id));
+        const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
+        await updateDoc(doc(db, "inventory_assets", id), updatePayload);
+        const newData = { ...oldData, ...updatePayload };
+        
+        await logAction("inventory_assets", id, "UPDATE", oldData, newData);
+
+        return { status: "success", data: updatePayload };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
 
 export const deleteAsset = async (id) => {
     try {
-        const response = await api.delete(`/inventory/assets/${id}`);
-        return { status: "success", data: response.data };
+        const oldDoc = await getDoc(doc(db, "inventory_assets", id));
+        const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
+        await deleteDoc(doc(db, "inventory_assets", id));
+        await logAction("inventory_assets", id, "DELETE", oldData, null);
+
+        return { status: "success" };
     } catch (error) {
-        return { status: "error", message: error.response?.data || error.message };
+        return { status: "error", message: error.message };
     }
 };
