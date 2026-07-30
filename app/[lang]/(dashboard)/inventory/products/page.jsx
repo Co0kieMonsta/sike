@@ -1,19 +1,36 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { getProducts } from "@/config/inventory.config";
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export default function ProductsPage() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-export const metadata = {
-  title: "Inventario de Refacciones",
-};
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const response = await getProducts();
+      if (response.status === "success") {
+        setProducts(response.data);
+      }
+      setLoading(false);
+    };
+    fetchProducts();
+  }, []);
 
-export default async function ProductsPage() {
-  const response = await getProducts();
-  const products = response.status === "success" ? response.data : [];
+  if (loading) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5 p-6">
