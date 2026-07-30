@@ -109,7 +109,7 @@ const ProjectDetailsPage = ({ params }) => {
         </TabsContent>
 
         <TabsContent value="finance" className="space-y-4">
-          <ProjectFinanceTab projectId={project.id} />
+          <ProjectFinanceTab project={project} />
         </TabsContent>
 
         <TabsContent value="parts" className="space-y-4">

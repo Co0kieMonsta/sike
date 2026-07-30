@@ -93,6 +93,8 @@ export async function PUT(request, { params }) {
     if (body.inspectionDetails !== undefined) updateData.inspectionDetails = body.inspectionDetails;
     if (body.mechanic !== undefined) updateData.mechanic = body.mechanic;
     if (body.comments !== undefined) updateData.comments = body.comments;
+    if (body.payments !== undefined) updateData.payments = body.payments;
+    if (body.mechanicCommission !== undefined) updateData.mechanicCommission = parseFloat(body.mechanicCommission);
 
     await updateDoc(docRef, updateData);
 

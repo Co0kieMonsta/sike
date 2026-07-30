@@ -21,6 +21,7 @@ export function AssignMechanicModal({ open, onClose, project, onAssignSuccess })
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedMechanic, setSelectedMechanic] = useState(project?.mechanic?.id || null);
+  const [commission, setCommission] = useState(project?.mechanicCommission || "");
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -53,7 +54,8 @@ export function AssignMechanicModal({ open, onClose, project, onAssignSuccess })
       const mechanicData = mechanics.find(m => m.id === selectedMechanic);
       
       const payload = {
-        mechanic: mechanicData
+        mechanic: mechanicData,
+        mechanicCommission: commission ? parseFloat(commission) : 0
       };
 
       // Si el proyecto tenía un estado y estamos pasando a "En Reparación" o similar y queremos forzarlo:
@@ -117,6 +119,23 @@ export function AssignMechanicModal({ open, onClose, project, onAssignSuccess })
             ))
           )}
         </div>
+
+        {selectedMechanic && (
+          <div className="px-1 py-2 space-y-2">
+            <label className="text-sm font-medium">Comisión Acordada (Monto Fijo $)</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+              <Input 
+                type="number" 
+                placeholder="0.00" 
+                className="pl-7"
+                value={commission}
+                onChange={(e) => setCommission(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Este monto se registrará en las cuentas por pagar al cerrar el proyecto.</p>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancelar</Button>

@@ -12,8 +12,13 @@ import Link from "next/link";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import { ReceiptPrint } from "@/components/shop/receipt-print";
+import React, { useRef } from "react";
 
-const ProjectFinanceTab = ({ projectId }) => {
+const ProjectFinanceTab = ({ project }) => {
+  const projectId = project?.id;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -26,6 +31,21 @@ const ProjectFinanceTab = ({ projectId }) => {
     metodoPago: "efectivo",
     estado: "completado"
   });
+
+  const receiptRef = useRef();
+  const [selectedTx, setSelectedTx] = useState(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: receiptRef,
+    documentTitle: `Recibo_${project?.carName || 'Auto'}`,
+  });
+
+  const openPrintReceipt = (tx) => {
+    setSelectedTx(tx);
+    setTimeout(() => {
+      handlePrint();
+    }, 100);
+  };
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -67,18 +87,61 @@ const ProjectFinanceTab = ({ projectId }) => {
     }
   };
 
+  const totalPaid = transactions
+    .filter(t => t.tipo === "ingreso" && t.estado === "completado")
+    .reduce((sum, t) => sum + Number(t.monto), 0);
+
+  const totalExpenses = transactions
+    .filter(t => t.tipo === "egreso" && t.estado === "completado")
+    .reduce((sum, t) => sum + Number(t.monto), 0);
+
+  const budget = Number(project?.budget || 0);
+  const remaining = budget - totalPaid;
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium">Transacciones del Proyecto</h3>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-4 flex flex-col justify-center">
+            <p className="text-sm text-muted-foreground font-medium">Presupuesto Total</p>
+            <p className="text-2xl font-bold text-primary">${budget.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-500/5 border-green-500/20">
+          <CardContent className="p-4 flex flex-col justify-center">
+            <p className="text-sm text-muted-foreground font-medium">Total Cobrado (Abonos)</p>
+            <p className="text-2xl font-bold text-green-600">${totalPaid.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+        <Card className={remaining > 0 ? "bg-orange-500/5 border-orange-500/20" : "bg-muted/30 border-muted"}>
+          <CardContent className="p-4 flex flex-col justify-center">
+            <p className="text-sm text-muted-foreground font-medium">Saldo Pendiente</p>
+            <p className={`text-2xl font-bold ${remaining > 0 ? 'text-orange-600' : 'text-muted-foreground'}`}>
+              ${remaining > 0 ? remaining.toFixed(2) : "0.00"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card className="bg-red-500/5 border-red-500/20">
+          <CardContent className="p-4 flex flex-col justify-center">
+            <p className="text-sm text-muted-foreground font-medium">Gastos del Proyecto</p>
+            <p className="text-2xl font-bold text-red-600">${totalExpenses.toFixed(2)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between items-center mt-6">
+        <h3 className="text-lg font-medium">Historial de Transacciones</h3>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
             <Link href="/en/transactions">
-              <ExternalLink className="h-4 w-4 mr-2" /> Finanzas
+              <ExternalLink className="h-4 w-4 mr-2" /> Ir a Finanzas
             </Link>
           </Button>
-          <Button onClick={() => setIsAddModalOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Agregar Gasto/Ingreso
+          <Button onClick={() => {
+            setNewTrans({ ...newTrans, tipo: "ingreso", descripcion: "Abono al proyecto" });
+            setIsAddModalOpen(true);
+          }}>
+            <Plus className="h-4 w-4 mr-2" /> Registrar Abono / Gasto
           </Button>
         </div>
       </div>
@@ -99,6 +162,7 @@ const ProjectFinanceTab = ({ projectId }) => {
                     <TableHead>Descripción</TableHead>
                     <TableHead className="text-right">Monto</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Recibo</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -121,6 +185,13 @@ const ProjectFinanceTab = ({ projectId }) => {
                         <Badge variant="soft" color={t.estado === "completado" ? "success" : "warning"}>
                           {t.estado}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {t.tipo === "ingreso" && t.estado === "completado" && (
+                          <Button variant="ghost" size="sm" onClick={() => openPrintReceipt(t)} className="h-8 px-2 text-primary">
+                            <Printer className="h-4 w-4 mr-1" /> Imprimir
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -187,6 +258,11 @@ const ProjectFinanceTab = ({ projectId }) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Hidden Print Area */}
+      <div style={{ display: "none" }}>
+        <ReceiptPrint ref={receiptRef} project={project} transaction={selectedTx} />
+      </div>
     </div>
   );
 };
