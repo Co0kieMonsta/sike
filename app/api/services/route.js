@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+
 
 // Create private admin client
 const supabaseAdmin = createClient(
@@ -12,16 +11,6 @@ const supabaseAdmin = createClient(
 // POST - Create new service
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Optional: Enforce Auth
-    // if (!session) {
-    //   return NextResponse.json(
-    //     { status: "fail", message: "Unauthorized" },
-    //     { status: 401 }
-    //   );
-    // }
-
     const reqBody = await request.json();
     const now = new Date().toISOString();
 

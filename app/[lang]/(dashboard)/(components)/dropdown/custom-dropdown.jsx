@@ -1,5 +1,5 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/provider/auth.provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,10 @@ import avatar5 from "@/public/images/avatar/avatar-5.jpg";
 import { ChevronDown } from "lucide-react";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
+import Image from "next/image";
+
 const CustomDropdown = () => {
+  const { user } = useAuth();
   return (
     <div className="flex flex-wrap gap-4">
       <DropdownMenu>
@@ -40,7 +43,19 @@ const CustomDropdown = () => {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem>
-              <Icon icon="heroicons:user" className="w-3 h-3 ltr:mr-2 rtl:ml-2 " />
+              {user?.image ? (
+                <Image
+                  src={user.image}
+                  alt={user.name ?? ""}
+                  width={36}
+                  height={36}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="h-9 w-9 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
               Profile
               <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
             </DropdownMenuItem>

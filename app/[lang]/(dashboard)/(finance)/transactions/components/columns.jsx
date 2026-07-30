@@ -20,7 +20,7 @@ const estados = [
 const metodosPago = [
   { value: "efectivo", label: "Efectivo" },
   { value: "transferencia", label: "Transferencia" },
-  { value: "cheque", label: "Cheque" },
+  { value: "yape", label: "YAPE" },
   { value: "tarjeta", label: "Tarjeta" },
 ];
 

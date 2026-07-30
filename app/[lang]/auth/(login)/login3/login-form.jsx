@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -55,17 +56,13 @@ const LogInForm = () => {
 
   const onSubmit = (data) => {
     startTransition(async () => {
-      let response = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-      if (response?.ok) {
+      try {
+        await signInWithEmailAndPassword(auth, data.email, data.password);
         toast.success("Login Successful");
         window.location.assign("/financedash");
         reset();
-      } else if (response?.error) {
-        toast.error(response?.error);
+      } catch (error) {
+        toast.error("Invalid credentials");
       }
     });
   };

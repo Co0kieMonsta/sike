@@ -1,23 +1,16 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-
-// Create private admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mock.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "mock-key"
-);
+import { db } from "@/lib/firebase";
+import { collection, getDocs, addDoc, query, orderBy } from "firebase/firestore";
 
 // GET - Fetch all clients
 export async function GET(request) {
   try {
-    const { data: clients, error } = await supabaseAdmin
-      .from("clients")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const clientsRef = collection(db, "docs_clients");
+    const q = query(clientsRef, orderBy("created_at", "desc"));
+    const snapshot = await getDocs(q);
 
-    if (error) throw error;
+    let clients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     return NextResponse.json({
       status: "success",
@@ -25,11 +18,11 @@ export async function GET(request) {
       count: clients.length,
     });
   } catch (error) {
-    console.log("An error occurred:", error);
+    console.error("An error occurred:", error);
     return NextResponse.json(
       {
         status: "fail",
-        message: "Something went wrong",
+        message: "Error al obtener clientes",
         error: error.message,
       },
       { status: 500 }
@@ -40,58 +33,41 @@ export async function GET(request) {
 // POST - Create new client
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Optional: Enforce Auth
-    // if (!session) {
-    //   return NextResponse.json(
-    //     { status: "fail", message: "Unauthorized" },
-    //     { status: 401 }
-    //   );
-    // }
-
-    const reqBody = await request.json();
+    const body = await request.json();
     const now = new Date().toISOString();
 
-    const { data, error } = await supabaseAdmin
-      .from("clients")
-      .insert([
-        {
-          name: reqBody.name,
-          email: reqBody.email,
-          phone: reqBody.phone,
-          address: reqBody.address,
-          car_brand: reqBody.car_brand,
-          car_model: reqBody.car_model,
-          car_color: reqBody.car_color,
-          car_plate: reqBody.car_plate,
-          status: reqBody.status || "active",
-          created_at: now,
-          updated_at: now,
-        }
-      ])
-      .select();
+    const newClient = {
+      name: body.name,
+      email: body.email || null,
+      phone: body.phone || null,
+      address: body.address || null,
+      car_brand: body.car_brand || null,
+      car_model: body.car_model || null,
+      car_color: body.car_color || null,
+      car_plate: body.car_plate || null,
+      status: body.status || "active",
+      created_at: now,
+      updated_at: now,
+    };
 
-    if (error) {
-      console.error("Supabase Error:", error);
-      throw error;
-    }
-
+    const clientsRef = collection(db, "docs_clients");
+    const docRef = await addDoc(clientsRef, newClient);
+    
     return NextResponse.json(
       {
         status: "success",
         message: "Cliente creado exitosamente",
-        data: data[0],
+        data: { id: docRef.id, ...newClient },
       },
       { status: 201 }
     );
   } catch (error) {
-    console.log("An error occurred:", error);
+    console.error("An error occurred:", error);
     return NextResponse.json(
       {
         status: "fail",
-        message: `Error: ${error.message || JSON.stringify(error)}`,
-        error: error,
+        message: "Error al crear cliente",
+        error: error.message,
       },
       { status: 500 }
     );

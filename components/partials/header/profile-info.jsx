@@ -1,5 +1,6 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
+import { useAuth } from "@/provider/auth.provider";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,36 +19,49 @@ import Image from "next/image";
 import Link from "next/link";
 
 const ProfileInfo = () => {
-  const { data: session } = useSession();
+  const { user, logOut } = useAuth();
+  const router = useRouter();
+
+  // DEBUG LOG
+  console.log("Current user state in Header:", user);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className=" cursor-pointer">
         <div className=" flex items-center  ">
-          {session?.user?.image && (
+          {user?.image ? (
             <Image
-              src={session?.user?.image}
-              alt={session?.user?.name ?? ""}
+              src={user.image}
+              alt={user.name ?? ""}
               width={36}
               height={36}
               className="rounded-full"
             />
+          ) : (
+            <div title={user?.email || "Sin email"} className="h-9 w-9 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </div>
           )}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 p-0" align="end">
         <DropdownMenuLabel className="flex gap-2 items-center mb-1 p-3">
-          {session?.user?.image && (
+          {user?.image ? (
             <Image
-              src={session?.user?.image}
-              alt={session?.user?.name ?? ""}
+              src={user.image}
+              alt={user.name ?? ""}
               width={36}
               height={36}
               className="rounded-full"
             />
+          ) : (
+            <div className="h-9 w-9 bg-primary/20 rounded-full flex items-center justify-center text-primary font-bold">
+              {user?.name?.charAt(0).toUpperCase() || "U"}
+            </div>
           )}
           <div>
             <div className="text-sm font-medium text-default-800 capitalize ">
-              {session?.user?.name ?? "Mcc Callem"}
+              {user?.name ?? user?.email ?? "Usuario"}
             </div>
             <Link
               href=""
@@ -114,7 +128,10 @@ const ProfileInfo = () => {
         </DropdownMenuGroup>
         <DropdownMenuSeparator className="mb-0 dark:bg-background" />
         <DropdownMenuItem
-          onSelect={() => signOut({ callbackUrl: "/" })}
+          onSelect={async () => {
+            await logOut();
+            router.push("/");
+          }}
           className="flex items-center gap-2 text-sm font-medium text-default-600 capitalize my-1 px-3 dark:hover:bg-background cursor-pointer"
         >
           <Icon icon="heroicons:power" className="w-4 h-4" />

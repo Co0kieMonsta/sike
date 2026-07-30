@@ -8,9 +8,9 @@ import {
   Copy,
   Mail,
   Phone,
-  UserCheck,
   UserX,
-  Shield
+  Shield,
+  MessageCircle
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
 
-export function DataTableRowActions({ row, onEdit, onDelete, onView, onChangeStatus, onChangeRole }) {
+export function DataTableRowActions({ row, onEdit, onDelete, onView, onChangeStatus, onChangeRole, onWhatsApp }) {
   const usuario = row.original;
 
   const handleCopyEmail = () => {
@@ -101,6 +101,13 @@ export function DataTableRowActions({ row, onEdit, onDelete, onView, onChangeSta
             <Copy className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
             Copiar ID
           </DropdownMenuItem>
+
+          {onWhatsApp && (
+            <DropdownMenuItem onClick={() => onWhatsApp(usuario)} className="text-green-600 focus:text-green-600">
+              <MessageCircle className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+              Enviar WhatsApp
+            </DropdownMenuItem>
+          )}
 
           {(onChangeStatus || onChangeRole) && <DropdownMenuSeparator />}
 

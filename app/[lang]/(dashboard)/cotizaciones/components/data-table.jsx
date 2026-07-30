@@ -25,7 +25,7 @@ import {
 import { DataTablePagination } from "../../users/components/data-table-pagination"; // Reuse
 import { DataTableToolbar } from "./data-table-toolbar";
 
-export function DataTable({ columns, data, onRefresh, onAdd, onDeleteSelected, onExport }) {
+export function DataTable({ columns, data, onRefresh, onAdd, onDeleteSelected, onExport, meta }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [columnFilters, setColumnFilters] = React.useState([]);
@@ -40,6 +40,7 @@ export function DataTable({ columns, data, onRefresh, onAdd, onDeleteSelected, o
       rowSelection,
       columnFilters,
     },
+    meta,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,

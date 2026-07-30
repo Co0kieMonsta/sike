@@ -30,6 +30,7 @@ export function ProductSelector({ products, value, onSelect }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           aria-expanded={open}
@@ -50,6 +51,7 @@ export function ProductSelector({ products, value, onSelect }) {
                 <div className="p-2 text-center">
                     <p className="text-sm text-muted-foreground mb-2">No encontrado.</p>
                     <Button 
+                        type="button"
                         variant="secondary" 
                         size="sm" 
                         className="w-full"
@@ -72,15 +74,26 @@ export function ProductSelector({ products, value, onSelect }) {
                     setOpen(false)
                   }}
                 >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      value === product.id ? "opacity-100" : "opacity-0"
+                  <div className="flex items-center gap-3 w-full">
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4 shrink-0",
+                        value === product.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {product.imageUrl ? (
+                      <div className="w-8 h-8 rounded shrink-0 overflow-hidden border">
+                        <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded shrink-0 border bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                        -
+                      </div>
                     )}
-                  />
-                  <div className="flex flex-col">
-                    <span>{product.name}</span>
-                    <span className="text-xs text-muted-foreground">${product.price}</span>
+                    <div className="flex flex-col flex-1 overflow-hidden">
+                      <span className="truncate">{product.name}</span>
+                      <span className="text-xs text-muted-foreground">${product.price}</span>
+                    </div>
                   </div>
                 </CommandItem>
               ))}

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mock.supabase.co",
@@ -11,11 +10,6 @@ const supabaseAdmin = createClient(
 // PUT - Update service
 export async function PUT(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Optional Check
-    // if (!session) { ... }
-    
     const { id } = await params;
     const reqBody = await request.json();
     const now = new Date().toISOString();
@@ -58,11 +52,6 @@ export async function PUT(request, { params }) {
 // DELETE - Remove service
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-
-    // Optional Check
-    // if (!session) { ... }
-
     const { id } = await params;
 
     const { error } = await supabaseAdmin

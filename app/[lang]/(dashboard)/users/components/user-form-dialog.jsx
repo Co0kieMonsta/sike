@@ -40,8 +40,12 @@ import {
   Shield,
   CheckCircle,
   Briefcase,
-  Building
+  Building,
+  Image as ImageIcon
 } from "lucide-react";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { toast } from "react-hot-toast";
 
 const userSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -60,6 +64,8 @@ const userSchema = z.object({
 
 export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
   const isEditMode = !!user;
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   const form = useForm({
     resolver: zodResolver(userSchema),
@@ -96,18 +102,43 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
         role: "user",
         status: "active",
         department: "",
-        position: "",
       });
+      setImagePreview(null);
+      setImageFile(null);
     }
-  }, [user, form]);
+  }, [user, form, open]);
 
-  const handleSubmit = (data) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    }
+  };
+
+  const handleSubmit = async (data) => {
+    let finalImageUrl = user?.image || null;
+
+    if (imageFile) {
+      try {
+        const fileRef = ref(storage, `user_images/${Date.now()}_${imageFile.name}`);
+        const snapshot = await uploadBytes(fileRef, imageFile);
+        finalImageUrl = await getDownloadURL(snapshot.ref);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Error al subir la imagen: " + error.message);
+      }
+    }
+
+    const payload = { ...data, image: finalImageUrl };
+
     // If in edit mode and password is empty, remove it from the data
-    if (isEditMode && !data.password) {
-      const { password, ...dataWithoutPassword } = data;
+    if (isEditMode && !payload.password) {
+      const { password, ...dataWithoutPassword } = payload;
       onSubmit(dataWithoutPassword);
     } else {
-      onSubmit(data);
+      onSubmit(payload);
     }
   };
 
@@ -136,6 +167,29 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            
+            <div className="flex flex-col items-center justify-center p-4">
+              <label htmlFor="profileImage" className="cursor-pointer group relative">
+                <div className="w-24 h-24 rounded-full border-2 border-dashed border-muted-foreground/25 flex items-center justify-center overflow-hidden bg-muted/20">
+                  {imagePreview || user?.image ? (
+                    <img src={imagePreview || user?.image} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                  )}
+                </div>
+                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-xs text-white font-medium">Cambiar</span>
+                </div>
+              </label>
+              <input
+                id="profileImage"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+              />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}

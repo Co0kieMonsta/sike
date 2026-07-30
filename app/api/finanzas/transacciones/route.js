@@ -11,6 +11,7 @@ export async function GET(request) {
     const estado = searchParams.get("estado");
     const fechaInicio = searchParams.get("fechaInicio");
     const fechaFin = searchParams.get("fechaFin");
+    const proyecto_id = searchParams.get("proyecto_id");
 
     const transRef = collection(db, "finance_transactions");
     
@@ -26,6 +27,14 @@ export async function GET(request) {
     if (estado) transacciones = transacciones.filter(t => t.estado === estado);
     if (fechaInicio) transacciones = transacciones.filter(t => t.fecha >= fechaInicio);
     if (fechaFin) transacciones = transacciones.filter(t => t.fecha <= fechaFin);
+    
+    if (proyecto_id) {
+      transacciones = transacciones.filter(t => t.proyecto_id === proyecto_id);
+    } else {
+      // Si no estamos consultando un proyecto específico, ocultamos las transacciones internas (como el costo de repuestos)
+      // para que no afecten la contabilidad global de finanzas.
+      transacciones = transacciones.filter(t => !t.is_internal);
+    }
     
     // Sort final por fecha
     transacciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
@@ -83,6 +92,8 @@ export async function POST(request) {
       referencia: reqBody.referencia || null,
       estado: reqBody.estado || "completado",
       comprobante: reqBody.comprobante || null,
+      proyecto_id: reqBody.proyecto_id || null,
+      is_internal: reqBody.is_internal || false,
       created_by: "USR-001",
       created_at: new Date().toISOString()
     };

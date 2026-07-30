@@ -7,8 +7,11 @@ import { DataTable } from "./components/data-table";
 import { columns } from "./components/columns";
 import { CotizacionesRowActions } from "./components/cotizaciones-row-actions";
 import { getCotizaciones, deleteCotizacion } from "@/config/cotizaciones.config";
+import { createProject } from "@/config/projects.config";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,8 +64,80 @@ const CotizacionesPage = () => {
     };
     
     const handlePrint = (cotizacion) => {
-        // Redirect to view page which should have print styles
-        router.push(`/cotizaciones/${cotizacion.id}?print=true`);
+        const doc = new jsPDF();
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(33, 37, 41);
+        doc.text("Cotización", 14, 20);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Fecha: ${new Date(cotizacion.fecha).toLocaleDateString()}`, 14, 30);
+        doc.text(`Cotización #: ${cotizacion.numero}`, 14, 36);
+        doc.text(`Cliente: ${cotizacion.cliente_nombre || "N/A"}`, 14, 42);
+        if(cotizacion.vehiculo) doc.text(`Vehículo: ${cotizacion.vehiculo}`, 14, 48);
+        
+        const tableData = cotizacion.detalles_cotizacion.map(item => [
+            item.descripcion,
+            item.cantidad,
+            `$${parseFloat(item.precio_unitario).toFixed(2)}`,
+            `$${(item.cantidad * item.precio_unitario).toFixed(2)}`
+        ]);
+
+        autoTable(doc, {
+            startY: cotizacion.vehiculo ? 56 : 50,
+            head: [['Descripción', 'Cantidad', 'Precio Unit.', 'Subtotal']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            styles: { fontSize: 10 },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            foot: [['', '', 'Total:', `$${parseFloat(cotizacion.total).toFixed(2)}`]],
+            footStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: 'bold' }
+        });
+
+        if (cotizacion.notas) {
+            const finalY = doc.lastAutoTable.finalY + 10;
+            doc.setFontSize(10);
+            doc.text("Notas Adicionales:", 14, finalY);
+            const splitNotes = doc.splitTextToSize(cotizacion.notas, 180);
+            doc.text(splitNotes, 14, finalY + 6);
+        }
+
+        doc.save(`Cotizacion_${cotizacion.numero}.pdf`);
+    };
+
+    const handleConvertToProject = async (cotizacion) => {
+        if(cotizacion.estado === "rechazada") {
+            toast.error("No se puede convertir una cotización rechazada.");
+            return;
+        }
+        setLoading(true);
+        try {
+            const projectData = {
+                title: `Proyecto de Cotización ${cotizacion.numero}`,
+                client: cotizacion.cliente_nombre,
+                carName: cotizacion.vehiculo || "",
+                budget: cotizacion.total,
+                status: "pending",
+                priority: "media",
+                startDate: new Date().toISOString(),
+                description: `Convertido desde Cotización ${cotizacion.numero}.\n\nServicios:\n${cotizacion.detalles_cotizacion.map(i => `- ${i.cantidad}x ${i.descripcion}`).join('\n')}`,
+                notes: cotizacion.notas || ""
+            };
+            const response = await createProject(projectData);
+            if (response.status === "success") {
+                toast.success("¡Proyecto creado exitosamente!");
+                router.push("/projects");
+            } else {
+                toast.error("Error al crear proyecto.");
+            }
+        } catch(error) {
+            toast.error("Error al convertir a proyecto.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = (cotizacion) => {
@@ -100,6 +175,7 @@ const CotizacionesPage = () => {
                         onDelete={handleDelete}
                         onView={handleView}
                         onPrint={handlePrint}
+                        onConvertToProject={handleConvertToProject}
                     />
                 ),
             };

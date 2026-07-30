@@ -76,6 +76,16 @@ const ClientsPage = () => {
     setServicesSheetOpen(true);
   };
 
+  const handleWhatsApp = (client) => {
+    if (!client.phone) {
+        toast.error("El cliente no tiene un teléfono registrado");
+        return;
+    }
+    const phoneClean = client.phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Hola ${client.name}, le saludamos del taller mecánico. Le contactamos para recordarle que es hora de agendar el próximo servicio para su ${client.car_brand} ${client.car_model}.`);
+    window.open(`https://wa.me/${phoneClean}?text=${message}`, '_blank');
+  };
+
   const confirmDeleteClient = async () => {
     if (!clientToDelete) return;
 
@@ -133,9 +143,8 @@ const ClientsPage = () => {
             row={row}
             onEdit={handleEditClient}
             onDelete={handleDeleteClient}
-            onEdit={handleEditClient}
-            onDelete={handleDeleteClient}
             onView={handleViewServices}
+            onWhatsApp={handleWhatsApp}
           />
         ),
       };

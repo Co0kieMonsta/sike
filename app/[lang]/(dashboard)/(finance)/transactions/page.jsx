@@ -21,6 +21,7 @@ import {
   getCuentas,
   getCategorias
 } from "@/config/finanzas.config";
+import { getProjects } from "@/config/projects.config";
 import { toast } from "react-hot-toast";
 import {
   AlertDialog,
@@ -32,7 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil, ArrowRightLeft, Calendar as CalendarIcon } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil, ArrowRightLeft, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { TransactionFormDialog } from "./components/transaction-form-dialog";
 import { TransferFormDialog } from "./components/transfer-form-dialog";
 
@@ -40,6 +41,7 @@ const TransactionsPage = () => {
   const [transacciones, setTransacciones] = useState([]);
   const [cuentas, setCuentas] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [proyectos, setProyectos] = useState([]);
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -54,10 +56,11 @@ const TransactionsPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [transRes, cuentasRes, categoriasRes] = await Promise.all([
+      const [transRes, cuentasRes, categoriasRes, proyectosRes] = await Promise.all([
         getTransacciones(),
         getCuentas(),
         getCategorias(),
+        getProjects(),
       ]);
 
       if (transRes.status === "success") {
@@ -66,6 +69,7 @@ const TransactionsPage = () => {
       }
       if (cuentasRes.status === "success") setCuentas(cuentasRes.data);
       if (categoriasRes.status === "success") setCategorias(categoriasRes.data);
+      if (proyectosRes.status === "success") setProyectos(proyectosRes.data);
     } catch (error) {
       toast.error("Error al cargar datos");
     } finally {
@@ -400,6 +404,11 @@ const TransactionsPage = () => {
                           {t.subcategoria && (
                             <span className="text-xs text-muted-foreground">{t.subcategoria}</span>
                           )}
+                          {t.proyecto_id && proyectos.find(p => p.id === t.proyecto_id) && (
+                            <Badge variant="soft" color="info" className="w-fit mt-1 text-[10px]">
+                              {proyectos.find(p => p.id === t.proyecto_id).title}
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
@@ -422,6 +431,13 @@ const TransactionsPage = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
+                          {t.comprobante && (
+                            <Button variant="ghost" size="icon" asChild>
+                              <a href={t.comprobante} target="_blank" rel="noreferrer" title="Ver comprobante">
+                                <FileText className="h-4 w-4 text-blue-500" />
+                              </a>
+                            </Button>
+                          )}
                           <Button variant="ghost" size="icon" onClick={() => handleEditTransaction(t)}>
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -451,6 +467,7 @@ const TransactionsPage = () => {
         isLoading={formLoading}
         cuentas={cuentas}
         categorias={categorias}
+        proyectos={proyectos}
       />
 
       {/* Transfer Form Dialog */}

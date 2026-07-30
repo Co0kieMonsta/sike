@@ -1,14 +1,13 @@
-import { getInventoryCategories } from "@/action/inventory";
-export const dynamic = "force-dynamic";
+import ClientCategoryList from "./components/client-category-list";
 
-import CategoryList from "@/components/inventory/category-list";
+export const metadata = {
+  title: "Categorías de Inventario",
+};
 
-export default async function CategoriesPage() {
-  const categories = await getInventoryCategories();
-
+export default function CategoriesPage() {
   return (
     <div className="p-6">
-      <CategoryList categories={categories || []} />
+      <ClientCategoryList />
     </div>
   );
 }

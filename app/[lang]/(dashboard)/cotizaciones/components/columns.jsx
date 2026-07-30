@@ -122,7 +122,18 @@ export const columns = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <CotizacionesRowActions row={row} />,
-    meta: {}
+    cell: ({ row, table }) => {
+      const { onEdit, onDelete, onView, onPrint, onConvertToProject } = table.options.meta || {};
+      return (
+        <CotizacionesRowActions 
+          row={row} 
+          onEdit={onEdit} 
+          onDelete={onDelete} 
+          onView={onView} 
+          onPrint={onPrint} 
+          onConvertToProject={onConvertToProject} 
+        />
+      );
+    },
   },
 ];

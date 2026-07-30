@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,8 +40,13 @@ import {
   FileText,
   Tags,
   Wallet,
-  CheckCircle
+  CheckCircle,
+  Upload,
+  Image as ImageIcon
 } from "lucide-react";
+import { storage } from "@/lib/firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { toast } from "react-hot-toast";
 
 const transactionSchema = z.object({
   fecha: z.string().min(1, "La fecha es requerida"),
@@ -51,19 +56,21 @@ const transactionSchema = z.object({
   categoria: z.string().min(2, "La categoría es requerida"),
   subcategoria: z.string().optional(),
   monto: z.string().min(1, "El monto es requerido"),
-  metodoPago: z.enum(["efectivo", "transferencia", "cheque", "tarjeta"], {
+  metodoPago: z.enum(["efectivo", "transferencia", "yape", "tarjeta"], {
     required_error: "Por favor selecciona un método de pago",
   }),
   cuenta: z.string().min(2, "La cuenta es requerida"),
   descripcion: z.string().min(5, "La descripción debe tener al menos 5 caracteres"),
-  referencia: z.string().optional(),
   estado: z.enum(["completado", "pendiente", "cancelado"], {
     required_error: "Por favor selecciona un estado",
   }),
+  proyecto_id: z.string().optional(),
 });
 
-export function TransactionFormDialog({ open, onClose, onSubmit, transaction, isLoading, cuentas, categorias }) {
+export function TransactionFormDialog({ open, onClose, onSubmit, transaction, isLoading, cuentas, categorias, proyectos }) {
   const isEditMode = !!transaction;
+  const [uploading, setUploading] = useState(false);
+  const [comprobanteUrl, setComprobanteUrl] = useState("");
 
   const form = useForm({
     resolver: zodResolver(transactionSchema),
@@ -76,8 +83,8 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
       metodoPago: "efectivo",
       cuenta: "",
       descripcion: "",
-      referencia: "",
       estado: "completado",
+      proyecto_id: "",
     },
   });
 
@@ -92,9 +99,10 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
         metodoPago: transaction.metodoPago || "efectivo",
         cuenta: transaction.cuenta || "",
         descripcion: transaction.descripcion || "",
-        referencia: transaction.referencia || "",
         estado: transaction.estado || "completado",
+        proyecto_id: transaction.proyecto_id || "",
       });
+      setComprobanteUrl(transaction.comprobante || "");
     } else {
       form.reset({
         fecha: new Date().toISOString().split('T')[0],
@@ -105,9 +113,10 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
         metodoPago: "efectivo",
         cuenta: "",
         descripcion: "",
-        referencia: "",
         estado: "completado",
+        proyecto_id: "",
       });
+      setComprobanteUrl("");
     }
   }, [transaction, form]);
 
@@ -115,8 +124,29 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
     const formattedData = {
       ...data,
       monto: parseFloat(data.monto),
+      proyecto_id: data.proyecto_id === "ninguno" ? null : data.proyecto_id,
+      comprobante: comprobanteUrl || null,
     };
     onSubmit(formattedData);
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const storageRef = ref(storage, `comprobantes/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      setComprobanteUrl(downloadURL);
+      toast.success("Comprobante subido exitosamente");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al subir el comprobante");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const tipo = form.watch("tipo");
@@ -303,7 +333,7 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                       <SelectContent>
                         <SelectItem value="efectivo">Efectivo</SelectItem>
                         <SelectItem value="transferencia">Transferencia</SelectItem>
-                        <SelectItem value="cheque">Cheque</SelectItem>
+                        <SelectItem value="yape">YAPE</SelectItem>
                         <SelectItem value="tarjeta">Tarjeta</SelectItem>
                       </SelectContent>
                     </Select>
@@ -394,16 +424,32 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
 
             <FormField
               control={form.control}
-              name="referencia"
+              name="proyecto_id"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Referencia
+                    Proyecto Vinculado (Opcional)
                   </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Número de factura, orden, etc. (opcional)" {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un proyecto" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ninguno">-- Ninguno --</SelectItem>
+                      {proyectos?.map((proyecto) => (
+                        <SelectItem key={proyecto.id} value={proyecto.id}>
+                          {proyecto.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -429,6 +475,39 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <FormLabel className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4" />
+                Comprobante (Opcional)
+              </FormLabel>
+              <div className="flex items-center gap-4">
+                <Input 
+                  type="file" 
+                  accept="image/*,.pdf" 
+                  onChange={handleFileChange} 
+                  disabled={uploading}
+                  className="w-full"
+                />
+                {uploading && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}
+              </div>
+              {comprobanteUrl && (
+                <div className="mt-2 flex flex-col gap-2">
+                  <a href={comprobanteUrl} target="_blank" rel="noreferrer" className="text-sm text-blue-500 hover:underline">
+                    Ver comprobante actual
+                  </a>
+                  {comprobanteUrl.includes(".pdf") ? (
+                     <div className="bg-muted p-4 rounded-md flex items-center justify-center">
+                        <FileText className="h-8 w-8 text-muted-foreground" />
+                        <span className="ml-2 text-sm">Documento PDF Adjunto</span>
+                     </div>
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={comprobanteUrl} alt="Comprobante" className="max-h-40 rounded-md border object-contain" />
+                  )}
+                </div>
+              )}
+            </div>
 
             <DialogFooter>
               <Button

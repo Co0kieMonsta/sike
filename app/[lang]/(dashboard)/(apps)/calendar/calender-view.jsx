@@ -13,6 +13,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 1000));
 const CalendarView = ({ events, categories }) => {
@@ -20,6 +22,7 @@ const CalendarView = ({ events, categories }) => {
   const [selectedEventDate, setSelectedEventDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [draggableInitialized, setDraggableInitialized] = useState(false);
+  const router = useRouter();
 
   // event canvas state
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -70,6 +73,11 @@ const CalendarView = ({ events, categories }) => {
   }, [dragEvents]);
   // event click
   const handleEventClick = (arg) => {
+    if (arg.event.extendedProps.isProject) {
+      toast("Los proyectos se gestionan desde el módulo de Proyectos", { icon: "🔧" });
+      router.push("/projects");
+      return;
+    }
     setSelectedEventDate(null);
     setSheetOpen(true);
     setSelectedEvent(arg);
@@ -109,11 +117,26 @@ const CalendarView = ({ events, categories }) => {
       return "info";
     } else if (arg.event.extendedProps.calendar === "meeting") {
       return "warning";
+    } else if (arg.event.extendedProps.calendar === "project") {
+      return "bg-purple-500 text-white border-purple-500";
     }
   };
   const filteredEvents = events?.filter((event) =>
     selectedCategory?.includes(event.extendedProps.calendar)
   );
+
+  const renderEventContent = (eventInfo) => {
+    return (
+      <div className="flex flex-col p-1 w-full overflow-hidden">
+        <div className="font-semibold text-xs truncate" title={eventInfo.event.title}>{eventInfo.event.title}</div>
+        {eventInfo.event.extendedProps.vehiculo && (
+            <div className="text-[10px] opacity-90 truncate" title={eventInfo.event.extendedProps.vehiculo}>
+                🚗 {eventInfo.event.extendedProps.vehiculo}
+            </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
@@ -204,6 +227,7 @@ const CalendarView = ({ events, categories }) => {
               dateClick={handleDateClick}
               eventClick={handleEventClick}
               initialView="dayGridMonth"
+              eventContent={renderEventContent}
             />
           </CardContent>
         </Card>

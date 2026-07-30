@@ -1,10 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
-import bcrypt from "bcrypt";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
+import { collection, getDocs, query, where, doc, setDoc } from "firebase/firestore";
 
 // GET - Fetch all usuarios
 export async function GET(request) {
@@ -39,18 +36,6 @@ export async function GET(request) {
 // POST - Create new usuario
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "admin") {
-      return NextResponse.json(
-        {
-          status: "fail",
-          message: "Unauthorized: Only admins can create users",
-        },
-        { status: 403 }
-      );
-    }
-
     const reqBody = await request.json();
     
     // Check if email already exists
@@ -65,14 +50,35 @@ export async function POST(request) {
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(reqBody.password, 10);
     const now = new Date().toISOString();
+
+    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const authUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
+
+    const authResponse = await fetch(authUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: reqBody.email,
+        password: reqBody.password,
+        returnSecureToken: false
+      })
+    });
+
+    const authData = await authResponse.json();
+
+    if (!authResponse.ok) {
+      return NextResponse.json(
+        { status: "fail", message: authData.error?.message || "Error al crear cuenta de usuario (Auth)" },
+        { status: 400 }
+      );
+    }
+
+    const uid = authData.localId;
 
     const newUser = {
       name: reqBody.name,
       email: reqBody.email,
-      password: hashedPassword,
       role: reqBody.role || "user",
       status: reqBody.status || "active",
       image: reqBody.image || null,
@@ -81,13 +87,14 @@ export async function POST(request) {
       position: reqBody.position || null,
       created_at: now,
       updated_at: now,
-      created_by: session.user.id, 
-      updated_by: session.user.id
+      created_by: "USR-001", 
+      updated_by: "USR-001"
     };
 
-    // Create new user in DB
-    const docRef = await addDoc(usersRef, newUser);
-    const createdUser = { id: docRef.id, ...newUser };
+    // Create new user in DB using the auth UID
+    const docRef = doc(db, "system_users", uid);
+    await setDoc(docRef, newUser);
+    const createdUser = { id: uid, ...newUser };
 
     return NextResponse.json(
       {

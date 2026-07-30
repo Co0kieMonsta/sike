@@ -115,6 +115,12 @@ export const calendarCategories = [
     activeClass: "ring-info-500 bg-info-500",
     className: " group-hover:border-cyan-500",
   },
+  {
+    label: "Proyecto",
+    value: "project",
+    activeClass: "ring-purple-500 bg-purple-500",
+    className: " group-hover:border-purple-500",
+  },
 ];
 
 export const categories = [
@@ -148,5 +154,10 @@ export const categories = [
     label: "Etc",
     value: "etc",
     className: "data-[state=checked]:bg-info border-info",
+  },
+  {
+    label: "Proyecto",
+    value: "project",
+    className: "data-[state=checked]:bg-purple-500 border-purple-500",
   },
 ];

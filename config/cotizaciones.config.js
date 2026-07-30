@@ -6,7 +6,7 @@ export const getCotizaciones = async () => {
         const response = await api.get("/cotizaciones");
         return {
             status: "success",
-            data: response.data,
+            data: response.data.data || [],
         };
     } catch (error) {
         return {
@@ -21,7 +21,7 @@ export const createCotizacion = async (data) => {
         const response = await api.post("/cotizaciones", data);
         return {
             status: "success",
-            data: response.data,
+            data: response.data.data || response.data,
         };
     } catch (error) {
         return {
@@ -36,7 +36,7 @@ export const getCotizacionById = async (id) => {
         const response = await api.get(`/cotizaciones/${id}`);
         return {
             status: "success",
-            data: response.data,
+            data: response.data.data || response.data,
         };
     } catch (error) {
         return {
@@ -51,7 +51,7 @@ export const updateCotizacion = async (id, data) => {
         const response = await api.put(`/cotizaciones/${id}`, data);
         return {
             status: "success",
-            data: response.data,
+            data: response.data.data || response.data,
         };
     } catch (error) {
         return {
@@ -66,7 +66,7 @@ export const deleteCotizacion = async (id) => {
         const response = await api.delete(`/cotizaciones/${id}`);
         return {
             status: "success",
-            data: response.data,
+            data: response.data.data || response.data,
         };
     } catch (error) {
         return {

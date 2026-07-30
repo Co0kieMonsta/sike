@@ -1,49 +1,110 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { projects } from "../data";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export async function GET(request, { params }) {
-  const { id } = await params;
+  try {
+    const { id } = await params;
 
-  const item = projects.find((item) => item.id === parseInt(id));
+    const docRef = doc(db, "projects", id);
+    const docSnap = await getDoc(docRef);
 
-  if (item) {
-    return NextResponse.json(item, { status: 200 });
-  } else {
-    return NextResponse.json({ message: "Item not found" }, { status: 404 });
-  }
-}
+    if (!docSnap.exists()) {
+      return NextResponse.json(
+        { status: "fail", message: "Project not found" },
+        { status: 404 }
+      );
+    }
 
-export async function PUT(request, { params }) {
-  const payloadItem = await request.json();
-  const index = projects.findIndex(
-    (item) => item.id === parseInt(payloadItem.id)
-  );
-
-  if (index !== -1) {
-    projects[index] = payloadItem;
-
+    return NextResponse.json({
+      status: "success",
+      data: { id: docSnap.id, ...docSnap.data() }
+    });
+  } catch (error) {
+    console.error("Server error:", error);
     return NextResponse.json(
-      { message: "Item updated successfully" },
-      { status: 200 }
+      { status: "fail", message: "Internal Server Error", error: error.message },
+      { status: 500 }
     );
-  } else {
-    return NextResponse.json({ message: "Item not found" }, { status: 404 });
   }
 }
 
 export async function DELETE(request, { params }) {
-  const { id } = await params;
+  try {
+    const { id } = await params;
 
-  const index = projects.findIndex((item) => item.id === parseInt(id));
+    const docRef = doc(db, "projects", id);
+    await deleteDoc(docRef);
 
-  if (index !== -1) {
-    // Remove the item from the array
-    projects.splice(index, 1);
+    return NextResponse.json({
+      status: "success",
+      message: "Deleted successfully"
+    });
+  } catch (error) {
+    console.error("Server error:", error);
     return NextResponse.json(
-      { message: "Item deleted successfully" },
-      { status: 200 }
+      { status: "fail", message: "Internal Server Error", error: error.message },
+      { status: 500 }
     );
-  } else {
-    return NextResponse.json({ message: "Item not found" }, { status: 404 });
+  }
+}
+
+export async function PUT(request, { params }) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { 
+      title, 
+      client, 
+      description, 
+      status, 
+      startDate, 
+      endDate, 
+      budget,
+      priority,
+      notes,
+      carId,
+      carName,
+      checklist,
+      inspectionDetails
+    } = body;
+
+    const docRef = doc(db, "projects", id);
+    
+    // Only update fields that are explicitly provided in the body
+    const updateData = {
+      updated_by: "USR-001",
+      updated_at: new Date().toISOString()
+    };
+
+    if (body.title !== undefined) updateData.title = body.title;
+    if (body.client !== undefined) updateData.client = body.client;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.status !== undefined) updateData.status = body.status;
+    if (body.priority !== undefined) updateData.priority = body.priority;
+    if (body.carId !== undefined) updateData.carId = body.carId;
+    if (body.carName !== undefined) updateData.carName = body.carName;
+    if (body.startDate !== undefined) updateData.startDate = body.startDate;
+    if (body.endDate !== undefined) updateData.endDate = body.endDate;
+    if (body.budget !== undefined) updateData.budget = parseFloat(body.budget);
+    if (body.notes !== undefined) updateData.notes = body.notes;
+    if (body.checklist !== undefined) updateData.checklist = body.checklist;
+    if (body.inspectionDetails !== undefined) updateData.inspectionDetails = body.inspectionDetails;
+    if (body.mechanic !== undefined) updateData.mechanic = body.mechanic;
+    if (body.comments !== undefined) updateData.comments = body.comments;
+
+    await updateDoc(docRef, updateData);
+
+    return NextResponse.json({
+      status: "success",
+      message: "Updated successfully"
+    });
+  } catch (error) {
+    console.error("Server error:", error);
+    return NextResponse.json(
+      { status: "fail", message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
   }
 }

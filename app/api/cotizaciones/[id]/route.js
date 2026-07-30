@@ -62,6 +62,7 @@ export async function PUT(request, { params }) {
       fecha_vencimiento, 
       items, 
       notas,
+      vehiculo,
       estado
     } = body;
 
@@ -77,6 +78,7 @@ export async function PUT(request, { params }) {
       cliente_direccion: cliente_direccion || null,
       fecha: fecha || new Date().toISOString(),
       fecha_vencimiento: fecha_vencimiento || null,
+      vehiculo: vehiculo || null,
       total,
       notas: notas || null,
       estado: estado || 'pendiente',

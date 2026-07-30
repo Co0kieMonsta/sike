@@ -27,16 +27,17 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { ProductSelector } from "./product-selector";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { getInventoryProducts } from "@/action/inventory";
+import { getProducts } from "@/config/inventory.config";
 
 const cotizacionSchema = z.object({
   cliente_nombre: z.string().min(1, "El nombre del cliente es requerido"),
   cliente_email: z.string().email("Email inválido").optional().or(z.literal("")),
   cliente_direccion: z.string().optional(),
-  fecha: z.date({ required_error: "La fecha es requerida" }),
-  fecha_vencimiento: z.date().optional(),
-  estado: z.string().optional(),
-  notas: z.string().optional(),
+  vehiculo: z.string().optional().nullable(),
+  fecha: z.date({ required_error: "La fecha es requerida" }).nullable(),
+  fecha_vencimiento: z.date().optional().nullable(),
+  estado: z.string().optional().nullable(),
+  notas: z.string().optional().nullable(),
   items: z.array(z.object({
     producto_id: z.string().optional(),
     descripcion: z.string().min(1, "Descripción requerida"),
@@ -53,8 +54,10 @@ export function CotizacionForm({ initialData }) {
   useEffect(() => {
     const fetchProducts = async () => {
         try {
-            const data = await getInventoryProducts();
-            setProducts(data || []);
+            const response = await getProducts();
+            if (response.status === "success") {
+                setProducts(response.data || []);
+            }
         } catch (error) {
             console.error("Failed to load products", error);
         }
@@ -128,7 +131,7 @@ export function CotizacionForm({ initialData }) {
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-10">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
+        <Button type="button" variant="outline" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-2xl font-bold tracking-tight">
@@ -136,7 +139,7 @@ export function CotizacionForm({ initialData }) {
         </h2>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit, (errors) => console.error("Form Validation Errors:", errors))} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Información del Cliente</CardTitle>
@@ -164,6 +167,15 @@ export function CotizacionForm({ initialData }) {
               {form.formState.errors.cliente_email && (
                 <p className="text-sm text-destructive">{form.formState.errors.cliente_email.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="vehiculo">Vehículo (Marca, Modelo, Placas)</Label>
+              <Input
+                id="vehiculo"
+                {...form.register("vehiculo")}
+                placeholder="Ej. Honda Civic 2020 - XYZ-123"
+              />
             </div>
 
             <div className="space-y-2 md:col-span-2">

@@ -1,38 +1,30 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
-
-// Create private admin client
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mock.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "mock-key"
-);
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 // GET - Fetch single client
 export async function GET(request, { params }) {
   try {
     const { id } = await params;
-    const { data: client, error } = await supabaseAdmin
-      .from("clients")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const docRef = doc(db, "docs_clients", id);
+    const docSnap = await getDoc(docRef);
 
-    if (error) throw error;
+    if (!docSnap.exists()) {
+      return NextResponse.json(
+        { status: "fail", message: "Client not found" },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       status: "success",
-      data: client,
+      data: { id: docSnap.id, ...docSnap.data() }
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        status: "fail",
-        message: "Client not found or error occurred",
-        error: error.message,
-      },
-      { status: 404 }
+      { status: "fail", message: "Error occurred", error: error.message },
+      { status: 500 }
     );
   }
 }
@@ -41,40 +33,34 @@ export async function GET(request, { params }) {
 export async function PUT(request, { params }) {
   try {
     const { id } = await params;
-    const reqBody = await request.json();
+    const body = await request.json();
     const now = new Date().toISOString();
 
-    const { data, error } = await supabaseAdmin
-      .from("clients")
-      .update({
-        name: reqBody.name,
-        email: reqBody.email,
-        phone: reqBody.phone,
-        address: reqBody.address,
-        car_brand: reqBody.car_brand,
-        car_model: reqBody.car_model,
-        car_color: reqBody.car_color,
-        car_plate: reqBody.car_plate,
-        status: reqBody.status,
-        updated_at: now,
-      })
-      .eq("id", id)
-      .select();
+    const docRef = doc(db, "docs_clients", id);
+    
+    const updateData = {
+      name: body.name,
+      email: body.email || null,
+      phone: body.phone || null,
+      address: body.address || null,
+      car_brand: body.car_brand || null,
+      car_model: body.car_model || null,
+      car_color: body.car_color || null,
+      car_plate: body.car_plate || null,
+      status: body.status || "active",
+      updated_at: now,
+    };
 
-    if (error) throw error;
+    await updateDoc(docRef, updateData);
 
     return NextResponse.json({
       status: "success",
       message: "Client updated successfully",
-      data: data[0],
+      data: { id, ...updateData },
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        status: "fail",
-        message: "Error updating client",
-        error: error.message,
-      },
+      { status: "fail", message: "Error updating client", error: error.message },
       { status: 500 }
     );
   }
@@ -84,12 +70,8 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
-    const { error } = await supabaseAdmin
-      .from("clients")
-      .delete()
-      .eq("id", id);
-
-    if (error) throw error;
+    const docRef = doc(db, "docs_clients", id);
+    await deleteDoc(docRef);
 
     return NextResponse.json({
       status: "success",
@@ -97,11 +79,7 @@ export async function DELETE(request, { params }) {
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        status: "fail",
-        message: "Error deleting client",
-        error: error.message,
-      },
+      { status: "fail", message: "Error deleting client", error: error.message },
       { status: 500 }
     );
   }

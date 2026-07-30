@@ -35,9 +35,12 @@ import {
 import toast from "react-hot-toast";
 import DeleteConfirmationDialog from "@/components/delete-confirmation-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { IntakeChecklistModal } from "@/components/shop/intake-checklist-modal";
+
 const schema = z.object({
   title: z.string().min(3, { message: "Required" }),
   description: z.string().optional(),
+  vehiculo: z.string().optional(),
 });
 
 const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
@@ -50,6 +53,9 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
   // delete modal state
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [eventIdToDelete, setEventIdToDelete] = useState(null);
+  
+  // Intake Modal state
+  const [intakeModalOpen, setIntakeModalOpen] = useState(false);
 
   const {
     register,
@@ -83,6 +89,7 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
         data.extendedProps = {
           calendar: calendarProps,
           description: data.description,
+          vehiculo: data.vehiculo,
         };
 
         let response = await AddEvent(data);
@@ -101,6 +108,7 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
         data.extendedProps = {
           calendar: calendarProps,
           description: data.description,
+          vehiculo: data.vehiculo,
         };
         let response = await updateEventAction(event?.event?.id, data);
         if (response?.status === "success") {
@@ -139,9 +147,10 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
         setCalendarProps(categories[0].value);
       }
       setValue("description", event?.event?.extendedProps?.description || "");
+      setValue("vehiculo", event?.event?.extendedProps?.vehiculo || "");
     }
     setValue("title", event?.event?.title || "");
-  }, [event, selectedDate, open]);
+  }, [event, selectedDate, open, setValue, categories]);
 
   const onDeleteEventAction = async () => {
     try {
@@ -171,6 +180,45 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
     onClose();
   };
 
+  const handleConvertToProject = async (inspectionData = null) => {
+    try {
+      const projectData = {
+          title: `${event?.event?.title || "Servicio"}`,
+          client: event?.event?.title || "Cliente General",
+          carName: event?.event?.extendedProps?.vehiculo || "",
+          status: "pending",
+          priority: "media",
+          startDate: new Date().toISOString(),
+          description: `Ingreso desde Cita.\nMotivo/Notas: ${event?.event?.extendedProps?.description || ""}`,
+          budget: 0
+      };
+
+      if (inspectionData) {
+        projectData.inspectionId = inspectionData.id;
+        projectData.inspectionDetails = inspectionData;
+      }
+      
+      const { createProject } = await import("@/config/projects.config");
+      const response = await createProject(projectData);
+      
+      if (response.status === "success") {
+          toast.success("¡El auto llegó! Proyecto creado exitosamente.");
+          
+          // Delete the original calendar event since it is now a project
+          if (event?.event?.id) {
+            await deleteEventAction(event.event.id);
+          }
+          
+          reset();
+          onClose();
+      } else {
+          toast.error("Error al crear el proyecto.");
+      }
+    } catch(error) {
+      toast.error("Error en la conversión a proyecto.");
+    }
+  };
+
   return (
     <>
       <DeleteConfirmationDialog
@@ -192,15 +240,15 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
           </SheetHeader>
           <div className="mt-6 h-full">
             <form className=" h-full" onSubmit={handleSubmit(onSubmit)}>
-              <div className="h-[calc(100vh-130px)]">
+              <div className="h-[calc(100vh-180px)]">
                 <ScrollArea className="h-full">
                   <div className="space-y-4 pb-5 px-6">
                     <div className=" space-y-1.5">
-                      <Label htmlFor="title">Event Name</Label>
+                      <Label htmlFor="title">Event Name / Cliente</Label>
                       <Input
                         id="title"
                         type="text"
-                        placeholder="Enter Event Name"
+                        placeholder="Ej. Cambio de Aceite - Juan Pérez"
                         {...register("title")}
                       />
                       {errors && (
@@ -210,10 +258,20 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
                       )}
                     </div>
                     <div className=" space-y-1.5">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="vehiculo">Vehículo</Label>
+                      <Input
+                        id="vehiculo"
+                        type="text"
+                        placeholder="Ej. Nissan Sentra 2018 - XYZ123"
+                        {...register("vehiculo")}
+                      />
+                    </div>
+                    
+                    <div className=" space-y-1.5">
+                      <Label htmlFor="description">Notas / Motivo</Label>
                       <Textarea
                         id="description"
-                        placeholder="Enter Event Description"
+                        placeholder="Detalles de la falla o motivo de la cita"
                         className="min-h-[100px]"
                         {...register("description")}
                       />
@@ -343,27 +401,39 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
                   </div>
                 </ScrollArea>
               </div>
-              <div className="pb-12 flex flex-wrap gap-2 px-6">
-                <Button type="submit" disabled={isPending} className="flex-1">
-                  {isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {event ? "Updating..." : "Adding..."}
-                    </>
-                  ) : event ? (
-                    "Update Event"
-                  ) : (
-                    "Add Event"
-                  )}
-                </Button>
+              <div className="pb-12 flex flex-col gap-2 px-6">
+                <div className="flex gap-2">
+                    <Button type="submit" disabled={isPending} className="flex-1">
+                      {isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {event ? "Updating..." : "Adding..."}
+                        </>
+                      ) : event ? (
+                        "Update Event"
+                      ) : (
+                        "Add Event"
+                      )}
+                    </Button>
+                    {event && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => handleOpenDeleteModal(event?.event?.id)}
+                        className="flex-1"
+                      >
+                        Delete
+                      </Button>
+                    )}
+                </div>
                 {event && (
                   <Button
                     type="button"
-                    color="destructive"
-                    onClick={() => handleOpenDeleteModal(event?.event?.id)}
-                    className="flex-1"
+                    variant="outline"
+                    className="w-full mt-2 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 border-green-200"
+                    onClick={() => setIntakeModalOpen(true)}
                   >
-                    Delete
+                    🚗 ¡El auto llegó! (Checklist de Recepción)
                   </Button>
                 )}
               </div>
@@ -371,6 +441,23 @@ const EventSheet = ({ open, onClose, categories, event, selectedDate }) => {
           </div>
         </SheetContent>
       </Sheet>
+
+      {event && (
+        <IntakeChecklistModal
+          open={intakeModalOpen}
+          onClose={() => setIntakeModalOpen(false)}
+          eventData={{
+            id: event?.event?.id,
+            title: event?.event?.title,
+            extendedProps: {
+              ...event?.event?.extendedProps,
+              car_name: event?.event?.extendedProps?.vehiculo,
+              client_name: event?.event?.title,
+            }
+          }}
+          onSaveSuccess={handleConvertToProject}
+        />
+      )}
     </>
   );
 };

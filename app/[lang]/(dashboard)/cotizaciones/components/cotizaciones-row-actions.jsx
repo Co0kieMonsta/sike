@@ -7,7 +7,9 @@ import {
   Trash2, 
   Eye, 
   Printer,
-  Copy
+  Copy,
+  Hammer,
+  Send
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,8 +23,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "react-hot-toast";
 
-export function CotizacionesRowActions({ row, onEdit, onDelete, onView, onPrint }) {
+export function CotizacionesRowActions({ row, onEdit, onDelete, onView, onPrint, onConvertToProject }) {
   const cotizacion = row.original;
+
+  const handleShare = () => {
+    const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : '';
+    const magicLink = `${origin}/es/quote/${cotizacion.id}`;
+    const text = `Hola ${cotizacion.cliente_nombre || ''}, aquí tienes la cotización para tu ${cotizacion.vehiculo || 'vehículo'}. Puedes revisarla y aprobarla en el siguiente enlace: ${magicLink}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -63,7 +72,21 @@ export function CotizacionesRowActions({ row, onEdit, onDelete, onView, onPrint 
           {onPrint && (
             <DropdownMenuItem onClick={() => onPrint(cotizacion)}>
               <Printer className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-              Imprimir
+              Descargar PDF
+            </DropdownMenuItem>
+          )}
+
+          <DropdownMenuItem onClick={handleShare} className="text-green-600 focus:text-green-700 focus:bg-green-50">
+            <Send className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+            Compartir por WhatsApp
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {onConvertToProject && (
+            <DropdownMenuItem onClick={() => onConvertToProject(cotizacion)} className="text-primary focus:text-primary">
+              <Hammer className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+              Convertir a Proyecto
             </DropdownMenuItem>
           )}
           

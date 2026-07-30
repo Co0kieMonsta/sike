@@ -71,8 +71,9 @@ export async function PUT(request, { params }) {
       metodo_pago: reqBody.metodoPago || reqBody.metodo_pago,
       cuenta: reqBody.cuenta,
       descripcion: reqBody.descripcion,
-      referencia: reqBody.referencia,
-      estado: reqBody.estado,
+      referencia: reqBody.referencia || null,
+      estado: reqBody.estado || "completado",
+      proyecto_id: reqBody.proyecto_id || null,
       comprobante: reqBody.comprobante,
       updated_at: new Date().toISOString()
     };

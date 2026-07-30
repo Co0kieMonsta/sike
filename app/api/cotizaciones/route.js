@@ -44,6 +44,7 @@ export async function POST(request) {
       fecha_vencimiento, 
       items, 
       notas,
+      vehiculo,
       estado 
     } = body;
 
@@ -69,6 +70,7 @@ export async function POST(request) {
       cliente_direccion: cliente_direccion || null,
       fecha: fecha || new Date().toISOString(),
       fecha_vencimiento: fecha_vencimiento || null,
+      vehiculo: vehiculo || null,
       total,
       notas: notas || null,
       detalles_cotizacion: items.map(item => ({

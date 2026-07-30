@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import bcrypt from "bcrypt";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 
 // GET - Fetch single usuario by ID
 export async function GET(request, { params }) {
@@ -43,19 +41,6 @@ export async function GET(request, { params }) {
 // PUT - Update usuario
 export async function PUT(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    // Enforce Admin Only for updates
-    if (!session || session.user.role !== "admin") {
-       return NextResponse.json(
-        {
-          status: "fail",
-          message: "Unauthorized",
-        },
-        { status: 403 }
-      );
-    }
-
     const { id } = await params;
     const reqBody = await request.json();
 
@@ -64,11 +49,12 @@ export async function PUT(request, { params }) {
     delete updates.created_at; 
     delete updates.created_by; 
     
-    updates.updated_by = session.user.id;
+    updates.updated_by = "USR-001";
     updates.updated_at = new Date().toISOString();
     
     if (updates.password) {
-        updates.password = await bcrypt.hash(updates.password, 10);
+        // updates.password = await bcrypt.hash(updates.password, 10);
+        // Note: Password update should be done via Firebase Auth
     }
 
     const userRef = doc(db, "system_users", id);
@@ -108,30 +94,7 @@ export async function PUT(request, { params }) {
 // DELETE - Delete usuario
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    // Enforce Admin Only
-    if (!session || session.user.role !== "admin") {
-       return NextResponse.json(
-        {
-          status: "fail",
-          message: "Unauthorized",
-        },
-        { status: 403 }
-      );
-    }
-
     const { id } = await params;
-    
-    if (session.user.id === id) {
-       return NextResponse.json(
-        {
-          status: "fail",
-          message: "No puedes eliminar tu propia cuenta",
-        },
-        { status: 400 }
-      );
-    }
 
     const userRef = doc(db, "system_users", id);
     await deleteDoc(userRef);

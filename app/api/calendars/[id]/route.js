@@ -1,18 +1,13 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
-
-    const { error } = await supabase
-      .from("bookings")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      throw error;
-    }
+    const { id } = await params;
+    const docRef = doc(db, "docs_calendars", id);
+    await deleteDoc(docRef);
 
     return NextResponse.json({
       status: "success",
@@ -29,10 +24,9 @@ export async function DELETE(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const updatedEventData = await request.json();
 
-    // Map frontend data to DB columns if necessary
     const updatePayload = {};
     if (updatedEventData.title) updatePayload.title = updatedEventData.title;
     if (updatedEventData.start) updatePayload.start_date = updatedEventData.start;
@@ -40,30 +34,27 @@ export async function PUT(request, { params }) {
     if (updatedEventData.allDay !== undefined) updatePayload.all_day = updatedEventData.allDay;
     if (updatedEventData.extendedProps?.calendar) updatePayload.calendar_label = updatedEventData.extendedProps.calendar;
     if (updatedEventData.description) updatePayload.description = updatedEventData.description;
+    if (updatedEventData.extendedProps?.vehiculo) updatePayload.vehiculo = updatedEventData.extendedProps.vehiculo;
 
-    const { data, error } = await supabase
-      .from("bookings")
-      .update(updatePayload)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
+    const docRef = doc(db, "docs_calendars", id);
+    await updateDoc(docRef, updatePayload);
     
+    // fetch updated to return
+    const docSnap = await getDoc(docRef);
+    const data = docSnap.data();
+
     const updatedEvent = {
-        id: data.id,
+        id: docSnap.id,
         title: data.title,
-        start: new Date(data.start_date),
-        end: new Date(data.end_date),
+        start: data.start_date,
+        end: data.end_date,
         allDay: data.all_day,
         extendedProps: {
             calendar: data.calendar_label,
-            description: data.description
+            description: data.description,
+            vehiculo: data.vehiculo
         }
     }
-
 
     return NextResponse.json({
       status: "success",
