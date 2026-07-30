@@ -1,6 +1,7 @@
 import { api } from "@/config/axios.config";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, getDoc } from "firebase/firestore";
+import { logAction } from "./audit.config";
 
 // --- Categories ---
 export const getCategories = async () => {
@@ -87,10 +88,12 @@ export const createProduct = async (data) => {
             name, sku: sku || null, brand: brand || null, category_id,
             price: Number(price), cost: cost ? Number(cost) : 0, stock: stock ? Number(stock) : 0,
             location: location || null, status: status || 'active', description: description || null,
-            imageUrl: imageUrl || null, created_by: "USR-001", created_at: new Date().toISOString()
+            imageUrl: imageUrl || null, created_by: auth.currentUser ? auth.currentUser.uid : "anonymous", created_at: new Date().toISOString()
         };
         const docRef = await addDoc(collection(db, "inventory_products"), newProduct);
         const createdData = { id: docRef.id, ...newProduct };
+        
+        await logAction("inventory_products", docRef.id, "CREATE", null, createdData);
         
         if (newProduct.stock > 0) {
             await addDoc(collection(db, "inventory_movements"), {
@@ -112,7 +115,15 @@ export const updateProduct = async (id, data) => {
         if (updatePayload.cost !== undefined) updatePayload.cost = Number(updatePayload.cost);
         if (updatePayload.stock !== undefined) updatePayload.stock = Number(updatePayload.stock);
         
+        // Fetch old data for audit
+        const oldDoc = await getDoc(doc(db, "inventory_products", id));
+        const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
         await updateDoc(doc(db, "inventory_products", id), updatePayload);
+        
+        const newData = { ...oldData, ...updatePayload };
+        await logAction("inventory_products", id, "UPDATE", oldData, newData);
+
         return { status: "success", data: updatePayload };
     } catch (error) {
         return { status: "error", message: error.message };
@@ -121,7 +132,13 @@ export const updateProduct = async (id, data) => {
 
 export const deleteProduct = async (id) => {
     try {
+        const oldDoc = await getDoc(doc(db, "inventory_products", id));
+        const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
         await deleteDoc(doc(db, "inventory_products", id));
+        
+        await logAction("inventory_products", id, "DELETE", oldData, null);
+
         return { status: "success" };
     } catch (error) {
         return { status: "error", message: error.message };

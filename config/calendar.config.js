@@ -1,5 +1,6 @@
 import { db } from "@/lib/firebase";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, getDoc } from "firebase/firestore";
+import { logAction } from "./audit.config";
 
 export const getEvents = async (selectedCategory) => {
   try {
@@ -87,6 +88,9 @@ export const createEvent = async (data) => {
             vehiculo: newBooking.vehiculo
         }
     };
+    
+    await logAction("calendar_events", docRef.id, "CREATE", null, newBooking);
+    
     return { status: "success", data: newEvent };
   } catch (error) {
     return { status: "error", message: error.message };
@@ -95,7 +99,13 @@ export const createEvent = async (data) => {
 
 export const deleteEvent = async (id) => {
   try {
+    const oldDoc = await getDoc(doc(db, "docs_calendars", id));
+    const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
     await deleteDoc(doc(db, "docs_calendars", id));
+    
+    await logAction("calendar_events", id, "DELETE", oldData, null);
+
     return { status: "success" };
   } catch (error) {
     return { status: "error", message: error.message };
@@ -113,7 +123,15 @@ export const updateEvent = async (id, data) => {
       description: data.description || "",
       vehiculo: data.vehiculo || "",
     };
+    
+    const oldDoc = await getDoc(doc(db, "docs_calendars", id));
+    const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
     await updateDoc(doc(db, "docs_calendars", id), updateData);
+    
+    const newData = { ...oldData, ...updateData };
+    await logAction("calendar_events", id, "UPDATE", oldData, newData);
+
     return { status: "success", data: updateData };
   } catch (error) {
     return { status: "error", message: error.message };

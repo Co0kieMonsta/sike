@@ -1,5 +1,8 @@
 import { ProductForm } from "../components/product-form";
 import { getProductById } from "@/config/inventory.config";
+import HistoryTimeline from "@/components/history-timeline";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
   title: "Editar Refacción",
@@ -16,7 +19,24 @@ export default async function EditarProductPage({ params }) {
 
   return (
     <div className="p-6">
-      <ProductForm initialData={product} />
+      <Tabs defaultValue="detalles" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="detalles">Detalles de la Refacción</TabsTrigger>
+          <TabsTrigger value="historial">Historial de Cambios</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="detalles">
+          <ProductForm initialData={product} />
+        </TabsContent>
+        
+        <TabsContent value="historial">
+          <Card>
+            <CardContent className="pt-6">
+              <HistoryTimeline entityId={id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

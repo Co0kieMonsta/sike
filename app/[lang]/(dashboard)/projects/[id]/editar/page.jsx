@@ -5,6 +5,9 @@ import { ProjectForm } from "../../components/project-form";
 import { getProjectById } from "@/config/projects.config";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import HistoryTimeline from "@/components/history-timeline";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 
 const EditProjectPage = ({ params }) => {
   const [project, setProject] = useState(null);
@@ -47,7 +50,28 @@ const EditProjectPage = ({ params }) => {
     );
   }
 
-  return <ProjectForm initialData={project} />;
+  return (
+    <div className="p-6">
+      <Tabs defaultValue="detalles" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="detalles">Detalles del Proyecto</TabsTrigger>
+          <TabsTrigger value="historial">Historial de Cambios</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="detalles">
+          <ProjectForm initialData={project} />
+        </TabsContent>
+        
+        <TabsContent value="historial">
+          <Card>
+            <CardContent className="pt-6">
+              <HistoryTimeline entityId={project.id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
 };
 
 export default EditProjectPage;

@@ -1,82 +1,87 @@
-import { api } from "@/config/axios.config";
+import { db, auth, storage } from "@/lib/firebase";
+import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, getDoc } from "firebase/firestore";
+import { logAction } from "./audit.config";
 
 export const getProjects = async () => {
     try {
-        const response = await api.get("/projects");
-        return {
-            status: "success",
-            data: response.data.data,
-        };
+        const projectsRef = collection(db, "projects");
+        const q = query(projectsRef, orderBy("created_at", "desc"));
+        const snapshot = await getDocs(q);
+        const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return { status: "success", data: projects };
     } catch (error) {
-        return {
-            status: "error",
-            message: error.response?.data || error.message,
-        };
+        return { status: "error", message: error.message };
     }
 };
 
 export const createProject = async (data) => {
     try {
-        const response = await api.post("/projects", data);
-        return {
-            status: "success",
-            data: response.data.data,
+        const { title, client, description, status, startDate, endDate, budget, priority, carId, carName, inspectionId, inspectionDetails } = data;
+        const newProject = {
+            title, client, description: description || null,
+            status: status || 'pending', priority: priority || 'media',
+            carId: carId || null, carName: carName || null,
+            startDate: startDate || new Date().toISOString(), endDate: endDate || null,
+            budget: budget ? parseFloat(budget) : 0,
+            inspectionId: inspectionId || null, inspectionDetails: inspectionDetails || null,
+            created_by: auth.currentUser ? auth.currentUser.uid : "anonymous",
+            created_at: new Date().toISOString()
         };
+        const docRef = await addDoc(collection(db, "projects"), newProject);
+        const createdData = { id: docRef.id, ...newProject };
+        
+        await logAction("projects", docRef.id, "CREATE", null, createdData);
+        
+        return { status: "success", data: createdData };
     } catch (error) {
-        return {
-            status: "error",
-            message: error.response?.data || error.message,
-        };
+        return { status: "error", message: error.message };
     }
 };
 
 export const getProjectById = async (id) => {
     try {
-        const response = await api.get(`/projects/${id}`);
-        return {
-            status: "success",
-            data: response.data.data,
-        };
+        const docSnap = await getDoc(doc(db, "projects", id));
+        if (docSnap.exists()) {
+            return { status: "success", data: { id: docSnap.id, ...docSnap.data() } };
+        } else {
+            return { status: "fail", message: "Project not found" };
+        }
     } catch (error) {
-        return {
-            status: "error",
-            message: error.response?.data || error.message,
-        };
+        return { status: "error", message: error.message };
     }
 };
 
 export const updateProject = async (id, data) => {
     try {
-        const response = await api.put(`/projects/${id}`, data);
-        return {
-            status: "success",
-            data: response.data,
-        };
+        const oldDoc = await getDoc(doc(db, "projects", id));
+        const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
+        await updateDoc(doc(db, "projects", id), data);
+        
+        const newData = { ...oldData, ...data };
+        await logAction("projects", id, "UPDATE", oldData, newData);
+
+        return { status: "success", data };
     } catch (error) {
-        return {
-            status: "error",
-            message: error.response?.data || error.message,
-        };
+        return { status: "error", message: error.message };
     }
 };
 
 export const deleteProject = async (id) => {
     try {
-        const response = await api.delete(`/projects/${id}`);
-        return {
-            status: "success",
-            data: response.data,
-        };
+        const oldDoc = await getDoc(doc(db, "projects", id));
+        const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
+
+        await deleteDoc(doc(db, "projects", id));
+        
+        await logAction("projects", id, "DELETE", oldData, null);
+
+        return { status: "success" };
     } catch (error) {
-        return {
-            status: "error",
-            message: error.response?.data || error.message,
-        };
+        return { status: "error", message: error.message };
     }
 };
 
-import { db, storage } from "@/lib/firebase";
-import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, getDoc } from "firebase/firestore";
 
 // ============ PROJECT TASKS (KANBAN) ============
 export const getProjectTasks = async (projectId) => {
