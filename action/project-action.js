@@ -123,3 +123,8 @@ export const getStaff = async () => {
 export const addProjectAction = createProject;
 export const editProjectAction = updateProject;
 export const deleteProjectAction = deleteProject;
+
+// Dummy exports to fix build errors in task-board components
+export const deleteSubTaskAction = async () => {};
+export const updateTaskAction = async () => {};
+export const deleteTaskAction = async () => {};
