@@ -187,7 +187,7 @@ const ProjectFinanceTab = ({ project }) => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {t.tipo === "ingreso" && t.estado === "completado" && (
+                        {t.tipo?.toLowerCase() === "ingreso" && (
                           <Button variant="ghost" size="sm" onClick={() => openPrintReceipt(t)} className="h-8 px-2 text-primary">
                             <Printer className="h-4 w-4 mr-1" /> Imprimir
                           </Button>

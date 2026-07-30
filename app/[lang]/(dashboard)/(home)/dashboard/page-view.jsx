@@ -1,91 +1,163 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ReportsSnapshot from "./components/reports-snapshot";
-import CountryMap from "./components/country-map";
-import UserDeviceReport from "./components/user-device-report";
-import UserStats from "./components/user-stats-chart";
-import UsersStat from "./components/users-stat";
-import ReportsArea from "./components/reports-area";
-import DashboardSelect from "@/components/dasboard-select";
-import TopTen from "./components/top-ten";
-import TopPage from "./components/top-page";
+
+import React, { useEffect, useState } from "react";
+import { StatsCards } from "@/components/dashboard/stats-cards";
+import { ProjectsStatusChart } from "@/components/dashboard/projects-status-chart";
+import { RevenueChart } from "@/components/dashboard/revenue-chart";
+import { TopMechanics } from "@/components/dashboard/top-mechanics";
+import { getProjects } from "@/config/projects.config";
+import { getTransacciones } from "@/config/finanzas.config";
+import { Loader2 } from "lucide-react";
 import DatePickerWithRange from "@/components/date-picker-with-range";
 
 const DashboardPageView = ({ trans }) => {
+  const [loading, setLoading] = useState(true);
+  
+  // Data states
+  const [stats, setStats] = useState({});
+  const [statusData, setStatusData] = useState([]);
+  const [revenueData, setRevenueData] = useState([]);
+  const [mechanicsData, setMechanicsData] = useState([]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        const [projectsRes, transRes] = await Promise.all([
+          getProjects(),
+          getTransacciones()
+        ]);
+
+        const projects = projectsRes.status === "success" ? projectsRes.data : [];
+        const transactions = transRes.status === "success" ? transRes.data : [];
+
+        // 1. Process Stats
+        const activeVehicles = projects.filter(p => p.status !== "Finalizado" && p.status !== "Cancelado").length;
+        const completedProjects = projects.filter(p => p.status === "Finalizado").length;
+
+        // Determine current month
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        const monthlyIncome = transactions
+          .filter(t => {
+            const d = new Date(t.fecha);
+            return t.tipo === "ingreso" && t.estado === "completado" && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          })
+          .reduce((sum, t) => sum + Number(t.monto), 0);
+
+        const monthlyExpenses = transactions
+          .filter(t => {
+            const d = new Date(t.fecha);
+            return t.tipo === "egreso" && t.estado === "completado" && d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+          })
+          .reduce((sum, t) => sum + Number(t.monto), 0);
+
+        setStats({
+          activeVehicles,
+          completedProjects,
+          monthlyIncome,
+          monthlyExpenses
+        });
+
+        // 2. Process Projects Status Chart
+        const statuses = {};
+        projects.forEach(p => {
+          const s = p.status || "Pendiente";
+          statuses[s] = (statuses[s] || 0) + 1;
+        });
+        
+        const mappedStatus = Object.keys(statuses).map(key => ({
+          name: key,
+          value: statuses[key]
+        }));
+        setStatusData(mappedStatus);
+
+        // 3. Process Revenue Chart (Last 7 Days)
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const dateString = d.toISOString().split('T')[0];
+          
+          const dayIngresos = transactions
+            .filter(t => t.tipo === "ingreso" && t.estado === "completado" && t.fecha.startsWith(dateString))
+            .reduce((sum, t) => sum + Number(t.monto), 0);
+            
+          const dayEgresos = transactions
+            .filter(t => t.tipo === "egreso" && t.estado === "completado" && t.fecha.startsWith(dateString))
+            .reduce((sum, t) => sum + Number(t.monto), 0);
+
+          last7Days.push({
+            name: d.toLocaleDateString('es-ES', { weekday: 'short' }),
+            ingresos: dayIngresos,
+            egresos: dayEgresos
+          });
+        }
+        setRevenueData(last7Days);
+
+        // 4. Process Top Mechanics
+        const mechs = {};
+        projects.forEach(p => {
+          if (p.mechanic && p.status === "Finalizado") {
+            const mId = p.mechanic.id;
+            if (!mechs[mId]) {
+              mechs[mId] = {
+                ...p.mechanic,
+                completedCount: 0,
+                totalCommission: 0
+              };
+            }
+            mechs[mId].completedCount += 1;
+            mechs[mId].totalCommission += Number(p.mechanicCommission || 0);
+          }
+        });
+
+        const sortedMechs = Object.values(mechs).sort((a, b) => b.completedCount - a.completedCount);
+        setMechanicsData(sortedMechs);
+
+      } catch (error) {
+        console.error("Dashboard error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center flex-wrap justify-between gap-4">
-        <div className="text-2xl font-medium text-default-800 ">
-          Analytics {trans?.dashboard}
+        <div className="text-2xl font-medium text-default-800">
+          Sike Auto Analytics
         </div>
         <DatePickerWithRange />
       </div>
-      {/* reports area */}
-      <div className="grid grid-cols-12  gap-6 ">
-        <div className="col-span-12 lg:col-span-8">
-          <ReportsSnapshot />
-        </div>
-        <div className="col-span-12 lg:col-span-4">
-          <UsersStat />
-        </div>
-      </div>
+
+      <StatsCards stats={stats} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ReportsArea />
+        <div className="lg:col-span-2">
+          <RevenueChart revenueData={revenueData} />
         </div>
-        <Card>
-          <CardHeader className="border-none p-6 pt-5 mb-0">
-            <CardTitle className="text-lg font-semibold text-default-900 p-0">
-              New vs Returning Visitors
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-              <UserStats />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="border-none p-6 pt-5 mb-0">
-            <CardTitle className="text-lg font-semibold text-default-900 p-0">
-              Device Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="dashtail-legend">
-              <UserDeviceReport />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="col-span-2">
-        <Card>
-          <CardHeader className="border-none pb-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex-1 text-xl font-semibold text-default-900 whitespace-nowrap">
-                User By Country
-              </div>
-              <div className="flex-none">
-                <DashboardSelect />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-5 pb-0">
-            <CountryMap />
-          </CardContent>
-        </Card>
-      </div>
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-4">
-          <TopTen />
+        <div>
+          <ProjectsStatusChart statusData={statusData} />
         </div>
-        <div className="col-span-12 lg:col-span-8">
-          <Card>
-            <CardHeader className="border-none pb-0">
-              <CardTitle className="pt-2.5">Top Page/Post</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0">
-              <TopPage />
-            </CardContent>
-          </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <TopMechanics mechanicsData={mechanicsData} />
         </div>
       </div>
     </div>
