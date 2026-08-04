@@ -474,7 +474,7 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                   control={form.control}
                   name="descripcion"
                   render={({ field }) => (
-                    <FormItem>
+                    <FormItem className="mt-4">
                       <FormLabel className="flex items-center gap-2">
                         <FileText className="h-4 w-4" />
                         Descripción
@@ -491,7 +491,7 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                   )}
                 />
 
-                <div className="space-y-2">
+                <div className="space-y-2 mt-4">
                   <FormLabel className="flex items-center gap-2">
                     <ImageIcon className="h-4 w-4" />
                     Comprobante (Opcional)
@@ -524,9 +524,10 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                   )}
                 </div>
 
-                <DialogFooter>
-                  <Button
-                    type="button"
+                <div className="pt-6 mt-6 border-t border-border">
+                  <DialogFooter>
+                    <Button
+                      type="button"
                     variant="outline"
                     onClick={onClose}
                     disabled={isLoading}
@@ -544,6 +545,7 @@ export function TransactionFormDialog({ open, onClose, onSubmit, transaction, is
                     {isEditMode ? "Actualizar" : "Crear"}
                   </Button>
                 </DialogFooter>
+                </div>
               </form>
             </Form>
           </TabsContent>
