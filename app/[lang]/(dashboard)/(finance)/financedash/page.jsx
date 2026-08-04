@@ -73,6 +73,7 @@ const FinanceDashboard = () => {
   }, []);
 
   const categoryTotals = transacciones.reduce((acc, t) => {
+    if (t.estado !== "completado") return acc;
     if (!acc[t.categoria]) {
       acc[t.categoria] = { ingreso: 0, egreso: 0 };
     }
@@ -98,6 +99,7 @@ const FinanceDashboard = () => {
   // Data for Area Chart (Cashflow by month)
   // Get last 6 months
   const monthlyFlow = transacciones.reduce((acc, t) => {
+    if (t.estado !== "completado") return acc;
     const d = new Date(t.fecha);
     const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const label = d.toLocaleDateString('es-ES', { month: 'short' }); // ej. "ene"

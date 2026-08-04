@@ -77,6 +77,7 @@ const ReportesPage = () => {
 
   // Calculate statistics
   const categoryTotals = transacciones.reduce((acc, t) => {
+    if (t.estado !== "completado") return acc;
     if (!acc[t.categoria]) {
       acc[t.categoria] = { ingreso: 0, egreso: 0, count: 0 };
     }
@@ -90,6 +91,7 @@ const ReportesPage = () => {
   }, {});
 
   const metodoPagoTotals = transacciones.reduce((acc, t) => {
+    if (t.estado !== "completado") return acc;
     if (!acc[t.metodoPago]) {
       acc[t.metodoPago] = 0;
     }
@@ -99,6 +101,7 @@ const ReportesPage = () => {
 
   // Monthly trend (last 6 months real data)
   const monthlyFlow = transacciones.reduce((acc, t) => {
+    if (t.estado !== "completado") return acc;
     const d = new Date(t.fecha);
     const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const label = d.toLocaleDateString('es-ES', { month: 'short' });
