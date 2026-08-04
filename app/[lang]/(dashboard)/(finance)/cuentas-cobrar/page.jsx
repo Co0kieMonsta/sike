@@ -244,7 +244,7 @@ const CuentasCobrarPage = () => {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="text-green-600 border-green-200 hover:bg-green-50"
+                            className="text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700 dark:border-green-900/50 dark:hover:bg-green-900/30 dark:hover:text-green-400"
                             onClick={() => handleApproveClick(t)}
                           >
                             <CheckCircle2 className="mr-2 h-4 w-4" />
