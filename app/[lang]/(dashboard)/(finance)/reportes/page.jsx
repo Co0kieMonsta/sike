@@ -68,6 +68,7 @@ const ReportesPage = () => {
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState("mes");
+  const [agrupacion, setAgrupacion] = useState("mensual");
 
   const getFechas = (per) => {
     const today = new Date();
@@ -150,7 +151,7 @@ const ReportesPage = () => {
 
   // Monthly trend (last 6 months real data OR just the period distribution depending on view... we will keep it as monthly flow over the filtered data)
   // If period is 'semana' or 'mes', it might make more sense to do daily. But to keep it simple, we use the existing grouping. If it's a single month, they will all group into one dot. Let's group by day if period is mes or semana, and month if ano or historico.
-  const isDaily = periodo === "semana" || periodo === "mes";
+  const isDaily = agrupacion === "diario";
   
   const timeFlow = completadas.reduce((acc, t) => {
     const d = new Date(t.fecha);
@@ -417,12 +418,23 @@ const ReportesPage = () => {
         {/* Monthly Trend */}
         <motion.div variants={itemVariants} className="md:col-span-2">
           <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                Flujo de Dinero ({isDaily ? "Diario" : "Mensual"})
-              </CardTitle>
-              <CardDescription>Evolución en el tiempo del periodo seleccionado</CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Flujo de Dinero
+                </CardTitle>
+                <CardDescription className="mt-1">Evolución en el tiempo del periodo seleccionado</CardDescription>
+              </div>
+              <Select value={agrupacion} onValueChange={setAgrupacion}>
+                <SelectTrigger className="w-[120px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="diario">Diario</SelectItem>
+                  <SelectItem value="mensual">Mensual</SelectItem>
+                </SelectContent>
+              </Select>
             </CardHeader>
             <CardContent>
               <div className="h-[320px] w-full">
