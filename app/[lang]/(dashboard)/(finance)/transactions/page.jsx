@@ -52,6 +52,9 @@ const TransactionsPage = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [formLoading, setFormLoading] = useState(false);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchData = async () => {
     setLoading(true);
@@ -203,6 +206,12 @@ const TransactionsPage = () => {
     return matchesSearch && matchesDate;
   });
 
+  const totalPages = Math.ceil(filteredTransacciones.length / itemsPerPage);
+  const paginatedTransacciones = filteredTransacciones.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -318,7 +327,10 @@ const TransactionsPage = () => {
               <Input
                 placeholder="Buscar por descripción..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="pl-8 w-full"
               />
             </div>
@@ -328,7 +340,10 @@ const TransactionsPage = () => {
                 <Input 
                   type="date" 
                   value={dateRange.from}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
+                  onChange={(e) => {
+                    setDateRange(prev => ({ ...prev, from: e.target.value }));
+                    setCurrentPage(1);
+                  }}
                   removeWrapper={true}
                   className="w-full min-w-0 flex items-center appearance-none text-xs sm:text-sm h-9 sm:h-10"
                 />
@@ -338,7 +353,10 @@ const TransactionsPage = () => {
                 <Input 
                   type="date" 
                   value={dateRange.to}
-                  onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
+                  onChange={(e) => {
+                    setDateRange(prev => ({ ...prev, to: e.target.value }));
+                    setCurrentPage(1);
+                  }}
                   removeWrapper={true}
                   className="w-full min-w-0 flex items-center appearance-none text-xs sm:text-sm h-9 sm:h-10"
                 />
@@ -346,7 +364,10 @@ const TransactionsPage = () => {
               {(dateRange.from || dateRange.to) && (
                 <Button 
                   variant="ghost" 
-                  onClick={() => setDateRange({ from: "", to: "" })}
+                  onClick={() => {
+                    setDateRange({ from: "", to: "" });
+                    setCurrentPage(1);
+                  }}
                   className="col-span-2 sm:col-span-1 px-2 text-muted-foreground hover:text-destructive h-9 sm:h-10 mt-1 sm:mt-0"
                 >
                   Limpiar
@@ -370,14 +391,14 @@ const TransactionsPage = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTransacciones.length === 0 ? (
+                {paginatedTransacciones.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                       No se encontraron transacciones.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredTransacciones.map((t) => (
+                  paginatedTransacciones.map((t) => (
                     <TableRow key={t.id}>
                       <TableCell className="whitespace-nowrap">
                         <div className="text-sm">
@@ -452,6 +473,36 @@ const TransactionsPage = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-4">
+              <div className="text-sm text-muted-foreground">
+                Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredTransacciones.length)} de {filteredTransacciones.length} transacciones
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <div className="text-sm font-medium">
+                  Página {currentPage} de {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
