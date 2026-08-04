@@ -132,23 +132,29 @@ const FinanceDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <BarChart3 className="h-8 w-8" />
-            Dashboard Financiero
-          </h1>
-          <p className="text-muted-foreground">Resumen general de tus finanzas</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/transactions">
-            <Button>
-              <Receipt className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-              Ver Transacciones
-            </Button>
-          </Link>
-        </div>
-      </div>
+      <Card className="mb-5">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <BarChart3 className="h-8 w-8 text-primary" />
+                Dashboard Financiero
+              </CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Resumen general de tus finanzas
+              </CardDescription>
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Link href="/transactions" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto">
+                  <Receipt className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                  Ver Transacciones
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-blue-500/10 to-transparent border-blue-500/20 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
