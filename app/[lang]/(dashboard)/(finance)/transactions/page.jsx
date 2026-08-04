@@ -157,8 +157,9 @@ const TransactionsPage = () => {
         monto: data.monto,
         fecha: data.fecha,
         descripcion: `[Transferencia a ${destino?.nombre || 'Destino'}] ${data.descripcion}`,
-        categoria_id: "TRANSFERENCIA",
-        cuenta_id: data.origen_id,
+        categoria: "TRANSFERENCIA",
+        cuenta: origen?.nombre,
+        metodoPago: "transferencia",
         estado: "completado"
       };
 
@@ -167,8 +168,9 @@ const TransactionsPage = () => {
         monto: data.monto,
         fecha: data.fecha,
         descripcion: `[Transferencia desde ${origen?.nombre || 'Origen'}] ${data.descripcion}`,
-        categoria_id: "TRANSFERENCIA",
-        cuenta_id: data.destino_id,
+        categoria: "TRANSFERENCIA",
+        cuenta: destino?.nombre,
+        metodoPago: "transferencia",
         estado: "completado"
       };
 
