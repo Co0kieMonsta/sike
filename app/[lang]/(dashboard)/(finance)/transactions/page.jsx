@@ -33,7 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil, ArrowRightLeft, Calendar as CalendarIcon, FileText } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Wallet, Trash2, Plus, ArrowUpCircle, ArrowDownCircle, Search, Pencil, ArrowRightLeft, Calendar as CalendarIcon, FileText, ChevronLeft, ChevronRight } from "lucide-react";
 import { TransactionFormDialog } from "./components/transaction-form-dialog";
 import { TransferFormDialog } from "./components/transfer-form-dialog";
 
@@ -478,27 +478,29 @@ const TransactionsPage = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-2 py-4">
               <div className="text-sm text-muted-foreground">
-                Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredTransacciones.length)} de {filteredTransacciones.length} transacciones
+                {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredTransacciones.length)} de {filteredTransacciones.length}
               </div>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
-                  Anterior
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <div className="text-sm font-medium">
-                  Página {currentPage} de {totalPages}
+                <div className="text-sm font-medium w-16 text-center">
+                  {currentPage} de {totalPages}
                 </div>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="icon"
+                  className="h-8 w-8"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
