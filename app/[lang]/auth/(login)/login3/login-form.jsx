@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { 
+  signInWithEmailAndPassword, 
+  setPersistence, 
+  browserLocalPersistence, 
+  browserSessionPersistence 
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
@@ -50,6 +55,7 @@ const LogInForm = () => {
     },
   });
   const [isVisible, setIsVisible] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
   const isDesktop2xl = useMediaQuery("(max-width: 1530px)");
@@ -57,6 +63,12 @@ const LogInForm = () => {
   const onSubmit = (data) => {
     startTransition(async () => {
       try {
+        // Set persistence based on checkbox
+        const persistenceMode = rememberMe 
+          ? browserLocalPersistence 
+          : browserSessionPersistence;
+        
+        await setPersistence(auth, persistenceMode);
         await signInWithEmailAndPassword(auth, data.email, data.password);
         toast.success("Login Successful");
         window.location.assign("/dashboard");
@@ -157,6 +169,8 @@ const LogInForm = () => {
               size="sm"
               className="border-default-300 mt-[1px]"
               id="isRemebered"
+              checked={rememberMe}
+              onCheckedChange={setRememberMe}
             />
             <Label
               htmlFor="isRemebered"
