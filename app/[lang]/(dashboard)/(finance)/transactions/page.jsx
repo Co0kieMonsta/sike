@@ -280,33 +280,33 @@ const TransactionsPage = () => {
       {/* Main Table Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
+                <DollarSign className="h-5 w-5 text-primary" />
                 Gestión de Transacciones
               </CardTitle>
               <CardDescription>
                 Administra todas las transacciones financieras. Registra ingresos y egresos.
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
               <Button
                 variant="outline"
                 onClick={() => setTransferDialogOpen(true)}
                 size="lg"
-                className="gap-2 text-blue-600 hover:text-blue-700 px-3 sm:px-8"
+                className="gap-2 text-blue-600 hover:text-blue-700 w-full sm:w-auto px-3 sm:px-8"
               >
                 <ArrowRightLeft className="h-5 w-5" />
-                <span className="hidden sm:inline">Transferir</span>
+                <span className="inline">Transferir</span>
               </Button>
               <Button
                 onClick={() => handleAddTransaction()}
                 size="lg"
-                className="gap-2 px-3 sm:px-8"
+                className="gap-2 w-full sm:w-auto px-3 sm:px-8"
               >
                 <Plus className="h-5 w-5" />
-                <span className="hidden sm:inline">Nueva Transacción</span>
+                <span className="inline">Nueva Transacción</span>
               </Button>
             </div>
           </div>

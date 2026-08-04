@@ -158,17 +158,17 @@ const CategoriasPage = () => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Tags className="h-8 w-8" />
+            <Tags className="h-8 w-8 text-primary" />
             Gestión de Categorías
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1">
             Organiza tus transacciones en categorías
           </p>
         </div>
-        <Button onClick={() => handleOpenForm()}>
+        <Button onClick={() => handleOpenForm()} className="w-full sm:w-auto">
           <Plus className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
           Nueva Categoría
         </Button>
