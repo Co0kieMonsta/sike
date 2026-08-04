@@ -7,7 +7,7 @@ import {
   User,
   Application
 } from "@/components/svg";
-import { FileText } from "lucide-react";
+import { FileText, LifeBuoy } from "lucide-react";
 
 export const menusConfig = {
   mainNav: [
@@ -72,6 +72,11 @@ export const menusConfig = {
       title: "Inventario",
       icon: Application,
       href: "/inventory/products",
+    },
+    {
+      title: "Soporte",
+      icon: LifeBuoy,
+      href: "/support",
     }
   ],
   sidebarNav: {
@@ -224,6 +229,24 @@ export const menusConfig = {
           {
             title: "Categorías",
             href: "/inventory/categories",
+            icon: FileText,
+          }
+        ]
+      },
+      {
+        isHeader: true,
+        title: "Ayuda y Soporte",
+      },
+      {
+        title: "Soporte",
+        icon: LifeBuoy,
+        href: "/support",
+        isOpen: true,
+        isHide: false,
+        child: [
+          {
+            title: "Centro de Ayuda",
+            href: "/support",
             icon: FileText,
           }
         ]
