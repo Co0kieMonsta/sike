@@ -400,7 +400,7 @@ const CategoriasPage = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 mt-4">
                 <Label htmlFor="descripcion">Descripción</Label>
                 <Textarea
                   id="descripcion"
@@ -411,14 +411,16 @@ const CategoriasPage = () => {
                 />
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setFormDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {selectedCategoria ? "Actualizar" : "Crear"}
-              </Button>
-            </DialogFooter>
+            <div className="pt-6 mt-6 border-t border-border">
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setFormDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit">
+                  {selectedCategoria ? "Actualizar" : "Crear"}
+                </Button>
+              </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
