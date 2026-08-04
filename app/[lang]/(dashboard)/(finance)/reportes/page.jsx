@@ -126,7 +126,7 @@ const ReportesPage = () => {
   }, [periodo]);
 
   // Calculate statistics (only completado are in summary, but transacciones might have pendientes. Let's filter completados for charts)
-  const completadas = transacciones.filter(t => t.estado === "completado");
+  const completadas = transacciones.filter(t => t.estado === "completado" && t.categoria !== "TRANSFERENCIA");
 
   const categoryTotals = completadas.reduce((acc, t) => {
     if (!acc[t.categoria]) {

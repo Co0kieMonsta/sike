@@ -104,8 +104,9 @@ const FinanceDashboard = () => {
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
     
     const isHistorico = periodo === "historico";
+    const nonTransfers = transacciones.filter(t => t.categoria !== "TRANSFERENCIA");
 
-    const filtered = transacciones.filter(t => {
+    const filtered = nonTransfers.filter(t => {
       if (isHistorico) return true;
       const tTime = new Date(t.fecha).getTime();
       return tTime >= startOfThisMonth;
@@ -121,7 +122,7 @@ const FinanceDashboard = () => {
 
     const last = { ingresos: 0, egresos: 0, balance: 0 };
     if (!isHistorico) {
-      transacciones.forEach(t => {
+      nonTransfers.forEach(t => {
         const tTime = new Date(t.fecha).getTime();
         if (t.estado === "completado" && tTime >= startOfLastMonth && tTime < startOfThisMonth) {
           if (t.tipo === "ingreso") last.ingresos += t.monto;
@@ -163,7 +164,7 @@ const FinanceDashboard = () => {
       .sort((a, b) => b.value - a.value);
 
     // Area Chart Data (Last 6 months regardless of current filter, as it's a trend chart)
-    const monthlyFlow = transacciones.reduce((acc, t) => {
+    const monthlyFlow = nonTransfers.reduce((acc, t) => {
       if (t.estado !== "completado") return acc;
       const d = new Date(t.fecha);
       const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;

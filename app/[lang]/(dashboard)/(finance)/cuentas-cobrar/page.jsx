@@ -45,7 +45,8 @@ const CuentasCobrarPage = () => {
     try {
       const response = await getTransacciones({ tipo: "ingreso" });
       if (response.status === "success") {
-        setTransacciones(response.data);
+        const withoutTransfers = response.data.filter(t => t.categoria !== "TRANSFERENCIA");
+        setTransacciones(withoutTransfers);
       } else {
         toast.error(response.message || "Error al cargar datos");
       }
