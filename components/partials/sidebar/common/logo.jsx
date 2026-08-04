@@ -8,7 +8,7 @@ const SidebarLogo = ({ hovered }) => {
   return (
     <div className="px-4 py-4 ">
       <div className=" flex items-center">
-        <Link href="/" className="flex flex-1 items-center gap-x-3  ">
+        <Link href="/dashboard" className="flex flex-1 items-center gap-x-3  ">
           <SiteLogo className="text-primary h-8 w-8" />
           {(!collapsed || hovered) && (
             <div className="flex-1  text-xl text-primary  font-semibold">
