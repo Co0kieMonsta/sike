@@ -172,21 +172,25 @@ const CuentasPage = () => {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Wallet className="h-8 w-8 text-primary" />
-            Gestión de Cuentas
-          </h2>
-          <p className="text-muted-foreground mt-1">
-            Administra tus cuentas bancarias y de efectivo
-          </p>
-        </div>
-        <Button onClick={() => handleOpenForm()} className="w-full sm:w-auto">
-          <Plus className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-          Nueva Cuenta
-        </Button>
-      </div>
+      <Card className="mb-5">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <Wallet className="h-8 w-8 text-primary" />
+                Gestión de Cuentas
+              </CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Administra tus cuentas bancarias y de efectivo
+              </CardDescription>
+            </div>
+            <Button onClick={() => handleOpenForm()} className="w-full sm:w-auto">
+              <Plus className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+              Nueva Cuenta
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Total Balance Card */}
       <Card className="bg-primary text-white">
