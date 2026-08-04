@@ -219,48 +219,52 @@ const ReportesPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <BarChart3 className="h-8 w-8" />
-            Reportes Financieros
-          </h1>
-          <p className="text-muted-foreground">
-            Análisis detallado de tus finanzas
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Select value={periodo} onValueChange={setPeriodo}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="semana">Esta Semana</SelectItem>
-              <SelectItem value="mes">Este Mes</SelectItem>
-              <SelectItem value="trimestre">Este Trimestre</SelectItem>
-              <SelectItem value="ano">Este Año</SelectItem>
-            </SelectContent>
-          </Select>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button>
-                <Download className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                Exportar Reporte
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={exportToPDF}>
-                <FileText className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                Exportar PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToXLS}>
-                <FileSpreadsheet className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
-                Exportar Excel
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      <Card className="mb-5">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <BarChart3 className="h-8 w-8 text-primary" />
+                Reportes Financieros
+              </CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Análisis detallado de tus finanzas
+              </CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Select value={periodo} onValueChange={setPeriodo}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="semana">Esta Semana</SelectItem>
+                  <SelectItem value="mes">Este Mes</SelectItem>
+                  <SelectItem value="trimestre">Este Trimestre</SelectItem>
+                  <SelectItem value="ano">Este Año</SelectItem>
+                </SelectContent>
+              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Download className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    Exportar Reporte
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={exportToPDF}>
+                    <FileText className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    Exportar PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportToXLS}>
+                    <FileSpreadsheet className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
+                    Exportar Excel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Summary Section */}
       <Card>
