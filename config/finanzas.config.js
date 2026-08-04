@@ -27,8 +27,12 @@ export const getTransacciones = async (filters = {}) => {
     
     transacciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
-    const ingresos = transacciones.filter((t) => t.tipo === "ingreso").reduce((sum, t) => sum + Number(t.monto), 0);
-    const egresos = transacciones.filter((t) => t.tipo === "egreso").reduce((sum, t) => sum + Number(t.monto), 0);
+    const ingresos = transacciones
+      .filter((t) => t.tipo === "ingreso" && t.estado === "completado")
+      .reduce((sum, t) => sum + Number(t.monto), 0);
+    const egresos = transacciones
+      .filter((t) => t.tipo === "egreso" && t.estado === "completado")
+      .reduce((sum, t) => sum + Number(t.monto), 0);
 
     return {
       status: "success",
