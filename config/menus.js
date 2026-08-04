@@ -41,6 +41,11 @@ export const menusConfig = {
           href: "/reportes",
           icon: Chart,
         },
+        {
+          title: "Cuentas por Cobrar",
+          href: "/cuentas-cobrar",
+          icon: ClipBoard,
+        },
       ],
     },
     {
@@ -116,6 +121,11 @@ export const menusConfig = {
             title: "Reportes",
             href: "/reportes",
             icon: Chart,
+          },
+          {
+            title: "Cuentas por Cobrar",
+            href: "/cuentas-cobrar",
+            icon: ClipBoard,
           },
         ],
       },
