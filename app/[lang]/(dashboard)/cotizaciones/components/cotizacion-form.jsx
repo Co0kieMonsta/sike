@@ -150,7 +150,7 @@ export function CotizacionForm({ initialData }) {
               <Input
                 id="cliente_nombre"
                 {...form.register("cliente_nombre")}
-                placeholder="Empresa S.A. de C.V."
+                placeholder="Doofenshmirtz Evil Incorporated."
               />
               {form.formState.errors.cliente_nombre && (
                 <p className="text-sm text-destructive">{form.formState.errors.cliente_nombre.message}</p>
@@ -162,7 +162,7 @@ export function CotizacionForm({ initialData }) {
               <Input
                 id="cliente_email"
                 {...form.register("cliente_email")}
-                placeholder="contacto@empresa.com"
+                placeholder="heinz.doofenshmirtz@dei.com"
               />
               {form.formState.errors.cliente_email && (
                 <p className="text-sm text-destructive">{form.formState.errors.cliente_email.message}</p>
@@ -174,7 +174,7 @@ export function CotizacionForm({ initialData }) {
               <Input
                 id="vehiculo"
                 {...form.register("vehiculo")}
-                placeholder="Ej. Honda Civic 2020 - XYZ-123"
+                placeholder="Ej. Honda Miata 2000 - XXX-666"
               />
             </div>
 
@@ -183,7 +183,7 @@ export function CotizacionForm({ initialData }) {
               <Textarea
                 id="cliente_direccion"
                 {...form.register("cliente_direccion")}
-                placeholder="Calle Principal #123, Ciudad"
+                placeholder="P. Sherman, Calle Wallaby 42, Sídney"
               />
             </div>
 

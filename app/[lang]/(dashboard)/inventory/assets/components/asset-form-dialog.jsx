@@ -314,7 +314,7 @@ export function AssetFormDialog({ open, onClose, onSubmit, asset, isLoading, cat
                       <FormItem>
                         <FormLabel>Ubicación</FormLabel>
                         <FormControl>
-                          <Input placeholder="Ej. Bahía 1, Bodega..." {...field} />
+                          <Input placeholder="Ej. Carrito 1, Taller..." {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

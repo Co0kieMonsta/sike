@@ -156,7 +156,7 @@ export const ClientModal = ({ open, onClose, client, onSubmit, isLoading }) => {
                         <FormItem>
                             <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                                <Input placeholder="John Doe" {...field} />
+                                <Input placeholder="Dominic Toretto" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -172,7 +172,7 @@ export const ClientModal = ({ open, onClose, client, onSubmit, isLoading }) => {
                         <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                                <Input type="email" placeholder="john@example.com" {...field} />
+                                <Input type="email" placeholder="dom.toretto@2f2f.com" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -185,7 +185,7 @@ export const ClientModal = ({ open, onClose, client, onSubmit, isLoading }) => {
                         <FormItem>
                             <FormLabel>Phone</FormLabel>
                             <FormControl>
-                                <Input placeholder="+1234567890" {...field} />
+                                <Input placeholder="987 654 321" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -200,7 +200,7 @@ export const ClientModal = ({ open, onClose, client, onSubmit, isLoading }) => {
                     <FormItem>
                         <FormLabel>Address</FormLabel>
                         <FormControl>
-                            <Input placeholder="123 Main St" {...field} />
+                            <Input placeholder="1327 Adelaida Road" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -241,7 +241,7 @@ export const ClientModal = ({ open, onClose, client, onSubmit, isLoading }) => {
                             <FormItem>
                                 <FormLabel>Model</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Camry" {...field} />
+                                    <Input placeholder="Prius" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

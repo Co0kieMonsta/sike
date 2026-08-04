@@ -201,7 +201,7 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
                       Nombre Completo
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Juan Pérez" {...field} />
+                      <Input placeholder="Dominic Toretto" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -219,7 +219,7 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
                     <FormControl>
                       <Input
                         type="email"
-                        placeholder="juan@example.com"
+                        placeholder="dominic@sike.works"
                         {...field}
                       />
                     </FormControl>
@@ -260,7 +260,7 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
                       Teléfono
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="+1 234 567 8900" {...field} />
+                      <Input placeholder="999 111 111" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -340,7 +340,7 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
                       Departamento
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Ventas" {...field} />
+                      <Input placeholder="Administrativo" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -356,7 +356,7 @@ export function UserFormDialog({ open, onClose, onSubmit, user, isLoading }) {
                       Posición
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Gerente de Ventas" {...field} />
+                      <Input placeholder="Capitán de Multitareas" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

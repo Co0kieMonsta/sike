@@ -100,7 +100,7 @@ export function ProductForm({ initialData }) {
       }
 
       if (response.status === "success") {
-        toast.success(initialData ? "Refacción actualizada" : "Refacción registrada");
+        toast.success(initialData ? "Producto actualizado" : "Producto registrado");
         router.push("/inventory/products");
         router.refresh();
       } else {
@@ -121,7 +121,7 @@ export function ProductForm({ initialData }) {
             <ArrowLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-2xl font-bold tracking-tight">
-            {initialData ? `Editar Refacción: ${initialData.name}` : "Registrar Refacción"}
+            {initialData ? `Editar Producto: ${initialData.name}` : "Registrar Producto"}
         </h2>
       </div>
 
@@ -130,7 +130,7 @@ export function ProductForm({ initialData }) {
         <Card>
           <CardHeader>
             <CardTitle>Información del Producto</CardTitle>
-            <CardDescription>Detalles principales de la refacción o producto.</CardDescription>
+            <CardDescription>Detalles principales del repuesto o producto.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
@@ -138,7 +138,7 @@ export function ProductForm({ initialData }) {
               <Input
                 id="name"
                 {...form.register("name")}
-                placeholder="Ej. Filtro de Aceite de Alto Flujo"
+                placeholder="Ej. Pistones Forjados"
               />
               {form.formState.errors.name && (
                 <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
@@ -270,7 +270,7 @@ export function ProductForm({ initialData }) {
               <Input
                 id="location"
                 {...form.register("location")}
-                placeholder="Ej. Estante A2, Bodega"
+                placeholder="Ej. Estante A2, Almacén"
               />
             </div>
 
@@ -293,7 +293,7 @@ export function ProductForm({ initialData }) {
             <Button type="submit" disabled={loading}>
                 {loading && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>}
                 <Save className="mr-2 h-4 w-4" />
-                Guardar Refacción
+                Guardar Producto
             </Button>
         </div>
       </form>

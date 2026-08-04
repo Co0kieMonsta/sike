@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Editar Refacción",
+  title: "Editar Producto",
 };
 
 export default async function EditarProductPage({ params }) {
@@ -14,14 +14,14 @@ export default async function EditarProductPage({ params }) {
   const product = response.status === "success" ? response.data : null;
 
   if (!product) {
-    return <div className="p-6 text-destructive">Error: Refacción no encontrada</div>;
+    return <div className="p-6 text-destructive">Error: Producto no encontrado</div>;
   }
 
   return (
     <div className="p-6">
       <Tabs defaultValue="detalles" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="detalles">Detalles de la Refacción</TabsTrigger>
+          <TabsTrigger value="detalles">Detalles del Producto</TabsTrigger>
           <TabsTrigger value="historial">Historial de Cambios</TabsTrigger>
         </TabsList>
         

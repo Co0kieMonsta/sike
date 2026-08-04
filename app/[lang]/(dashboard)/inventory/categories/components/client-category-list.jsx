@@ -160,7 +160,7 @@ export default function CategoryList() {
             <DialogHeader>
               <DialogTitle>{editingCategory ? "Editar Categoría" : "Nueva Categoría"}</DialogTitle>
               <DialogDescription>
-                Administra las categorías de tus refacciones.
+                Administra las categorías de tus Productos.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>

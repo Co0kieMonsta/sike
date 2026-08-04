@@ -1,7 +1,7 @@
 import { ProductForm } from "../components/product-form";
 
 export const metadata = {
-  title: "Registrar Refacción",
+  title: "Registrar Producto",
 };
 
 export default function CrearProductPage() {

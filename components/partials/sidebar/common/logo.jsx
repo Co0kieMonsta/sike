@@ -1,20 +1,21 @@
 import { SiteLogo } from "@/components/svg";
 import { useSidebar } from "@/store";
 import React from "react";
+import Link from "next/link";
 
 const SidebarLogo = ({ hovered }) => {
   const { sidebarType, setCollapsed, collapsed } = useSidebar();
   return (
     <div className="px-4 py-4 ">
       <div className=" flex items-center">
-        <div className="flex flex-1 items-center gap-x-3  ">
+        <Link href="/" className="flex flex-1 items-center gap-x-3  ">
           <SiteLogo className="text-primary h-8 w-8" />
           {(!collapsed || hovered) && (
             <div className="flex-1  text-xl text-primary  font-semibold">
               SikeERP
             </div>
           )}
-        </div>
+        </Link>
         {sidebarType === "classic" && (!collapsed || hovered) && (
           <div className="flex-none lg:block hidden">
             <div

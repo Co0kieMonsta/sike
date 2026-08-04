@@ -202,7 +202,7 @@ export const menusConfig = {
         isHide: false,
         child: [
           {
-            title: "Refacciones",
+            title: "Productos",
             href: "/inventory/products",
             icon: FileText,
           },

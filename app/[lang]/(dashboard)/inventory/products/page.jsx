@@ -35,11 +35,11 @@ export default function ProductsPage() {
   return (
     <div className="space-y-5 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Refacciones y Productos</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Productos y Repuestos</h1>
         <Link href="/inventory/products/crear">
           <Button>
             <Plus className="mr-2 h-4 w-4" />
-            Registrar Refacción
+            Registrar Producto
           </Button>
         </Link>
       </div>

@@ -284,7 +284,7 @@ export function CarForm({ initialData }) {
               <Textarea
                 id="modifications"
                 {...form.register("modifications")}
-                placeholder="Turbos híbridos, inyectores 1000cc, repro Haltech..."
+                placeholder="Stage 3.5, twin turbo, Haltech..."
                 className="min-h-[120px]"
               />
             </div>

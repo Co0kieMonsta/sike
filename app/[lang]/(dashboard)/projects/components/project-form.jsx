@@ -217,7 +217,7 @@ export function ProjectForm({ initialData }) {
               <Input
                 id="title"
                 {...form.register("title")}
-                placeholder="Desarrollo de App Móvil"
+                placeholder="Swap 2JZ"
               />
               {form.formState.errors.title && (
                 <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
