@@ -7,8 +7,8 @@ import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 const SupportPage = () => {
-  const whatsappNumber = "1234567890"; // Placeholder
-  const whatsappMessage = encodeURIComponent("Hello, I need help with the Invoice App.");
+  const whatsappNumber = "+51992598384"; // Placeholder
+  const whatsappMessage = encodeURIComponent("Hello, I need help with the App.");
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
 
   return (

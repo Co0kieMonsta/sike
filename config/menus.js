@@ -123,16 +123,20 @@ export const menusConfig = {
             icon: ClipBoard,
           },
           {
-            title: "Reportes",
-            href: "/reportes",
-            icon: Chart,
-          },
-          {
             title: "Cuentas por Cobrar",
             href: "/cuentas-cobrar",
             icon: ClipBoard,
           },
+          {
+             title: "Reportes",
+            href: "/reportes",
+            icon: Chart,            
+          },
         ],
+      },
+      {
+        isHeader: true,
+        title: "Módulos en Desarrollo",
       },
       {
         title: "Documentos",
