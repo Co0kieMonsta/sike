@@ -4,6 +4,18 @@ import { logAction } from "./audit.config";
 
 // ============ TRANSACTIONS ============
 
+const applyBalanceDelta = async (cuentaNombre, delta) => {
+  if (!cuentaNombre || delta === 0) return;
+  const accountsRef = collection(db, "finance_accounts");
+  const q = query(accountsRef, where("nombre", "==", cuentaNombre));
+  const accountSnap = await getDocs(q);
+  if (!accountSnap.empty) {
+    const accountDoc = accountSnap.docs[0];
+    const currentSaldo = Number(accountDoc.data().saldo || 0);
+    await updateDoc(doc(db, "finance_accounts", accountDoc.id), { saldo: currentSaldo + delta });
+  }
+};
+
 export const getTransacciones = async (filters = {}) => {
   try {
     const { tipo, estado, fechaInicio, fechaFin, proyecto_id } = filters;
@@ -74,19 +86,9 @@ export const createTransaccion = async (data) => {
     const docRef = await addDoc(collection(db, "finance_transactions"), newTransaction);
     const createdData = { id: docRef.id, ...newTransaction };
 
-    if (data.cuenta) {
-      const accountsRef = collection(db, "finance_accounts");
-      const q = query(accountsRef, where("nombre", "==", data.cuenta));
-      const accountSnap = await getDocs(q);
-      if (!accountSnap.empty) {
-        const accountDoc = accountSnap.docs[0];
-        const accountData = accountDoc.data();
-        let newBalance = Number(accountData.saldo || 0);
-        const amount = Number(data.monto);
-        if (data.tipo === "ingreso") newBalance += amount;
-        else if (data.tipo === "egreso") newBalance -= amount;
-        await updateDoc(doc(db, "finance_accounts", accountDoc.id), { saldo: newBalance });
-      }
+    if (newTransaction.cuenta && newTransaction.estado === "completado") {
+      const delta = newTransaction.tipo === "ingreso" ? Number(newTransaction.monto) : -Number(newTransaction.monto);
+      await applyBalanceDelta(newTransaction.cuenta, delta);
     }
 
     await logAction("finance_transactions", docRef.id, "CREATE", null, createdData);
@@ -114,6 +116,22 @@ export const updateTransaccion = async (id, data) => {
     await updateDoc(doc(db, "finance_transactions", id), updates);
     const newData = { ...oldData, ...updates };
     
+    // Fix balance deltas
+    if (oldData) {
+      const oldWasCompletado = oldData.estado === "completado";
+      const newIsCompletado = newData.estado === "completado";
+
+      if (oldWasCompletado && oldData.cuenta) {
+        const revertDelta = oldData.tipo === "ingreso" ? -Number(oldData.monto) : Number(oldData.monto);
+        await applyBalanceDelta(oldData.cuenta, revertDelta);
+      }
+
+      if (newIsCompletado && newData.cuenta) {
+        const applyDelta = newData.tipo === "ingreso" ? Number(newData.monto) : -Number(newData.monto);
+        await applyBalanceDelta(newData.cuenta, applyDelta);
+      }
+    }
+
     await logAction("finance_transactions", id, "UPDATE", oldData, newData);
     return { status: "success", data: newData };
   } catch (error) {
@@ -127,6 +145,12 @@ export const deleteTransaccion = async (id) => {
     const oldData = oldDoc.exists() ? { id: oldDoc.id, ...oldDoc.data() } : null;
 
     await deleteDoc(doc(db, "finance_transactions", id));
+    
+    if (oldData && oldData.estado === "completado" && oldData.cuenta) {
+      const delta = oldData.tipo === "ingreso" ? -Number(oldData.monto) : Number(oldData.monto);
+      await applyBalanceDelta(oldData.cuenta, delta);
+    }
+    
     await logAction("finance_transactions", id, "DELETE", oldData, null);
 
     return { status: "success" };
