@@ -225,6 +225,42 @@ const TransactionsPage = () => {
 
   return (
     <div className="space-y-5">
+      {/* Header */}
+      <Card className="mb-5">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <DollarSign className="h-8 w-8 text-primary" />
+                Gestión de Transacciones
+              </CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Administra todas las transacciones financieras. Registra ingresos y egresos.
+              </CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                variant="outline"
+                onClick={() => setTransferDialogOpen(true)}
+                size="lg"
+                className="gap-2 text-blue-600 hover:text-blue-700 w-full sm:w-auto px-3 sm:px-8"
+              >
+                <ArrowRightLeft className="h-5 w-5" />
+                <span className="inline">Transferir</span>
+              </Button>
+              <Button
+                onClick={() => handleAddTransaction()}
+                size="lg"
+                className="gap-2 w-full sm:w-auto px-3 sm:px-8"
+              >
+                <Plus className="h-5 w-5" />
+                <span className="inline">Nueva Transacción</span>
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -288,39 +324,7 @@ const TransactionsPage = () => {
 
       {/* Main Table Card */}
       <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-primary" />
-                Gestión de Transacciones
-              </CardTitle>
-              <CardDescription>
-                Administra todas las transacciones financieras. Registra ingresos y egresos.
-              </CardDescription>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                onClick={() => setTransferDialogOpen(true)}
-                size="lg"
-                className="gap-2 text-blue-600 hover:text-blue-700 w-full sm:w-auto px-3 sm:px-8"
-              >
-                <ArrowRightLeft className="h-5 w-5" />
-                <span className="inline">Transferir</span>
-              </Button>
-              <Button
-                onClick={() => handleAddTransaction()}
-                size="lg"
-                className="gap-2 w-full sm:w-auto px-3 sm:px-8"
-              >
-                <Plus className="h-5 w-5" />
-                <span className="inline">Nueva Transacción</span>
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0 sm:p-6">
+        <CardContent className="p-0 sm:p-6 pt-4 sm:pt-6">
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-4 px-4 sm:px-0 pt-4 sm:pt-0">
             <div className="relative w-full sm:w-[300px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
