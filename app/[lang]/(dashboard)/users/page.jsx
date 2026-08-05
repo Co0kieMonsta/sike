@@ -26,8 +26,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users, Download, Upload, Trash2, Plus, Search, Pencil } from "lucide-react";
+import { Users, Download, Upload, Trash2, Plus, Search, Pencil, KeyRound } from "lucide-react";
 import { UserFormDialog } from "./components/user-form-dialog";
+import { auth } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -96,6 +98,24 @@ const UsuariosPage = () => {
     } finally {
       setDeleteDialogOpen(false);
       setUserToDelete(null);
+    }
+  };
+
+  // Handle password reset
+  const handleResetPassword = async (user) => {
+    if (!user.email) {
+      toast.error("El usuario no tiene un email válido.");
+      return;
+    }
+    const confirm = window.confirm(`¿Enviar correo de restablecimiento de contraseña a ${user.email}?`);
+    if (!confirm) return;
+
+    try {
+      await sendPasswordResetEmail(auth, user.email);
+      toast.success(`Correo enviado a ${user.email}`);
+    } catch (error) {
+      toast.error("Error al enviar correo de restablecimiento");
+      console.error(error);
     }
   };
 
@@ -303,8 +323,11 @@ const UsuariosPage = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)}>
+                          <Button variant="ghost" size="icon" onClick={() => handleEditUser(user)} title="Editar usuario">
                             <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleResetPassword(user)} title="Restablecer contraseña">
+                            <KeyRound className="h-4 w-4 text-blue-500" />
                           </Button>
                           <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteUser(user)}>
                             <Trash2 className="h-4 w-4" />
