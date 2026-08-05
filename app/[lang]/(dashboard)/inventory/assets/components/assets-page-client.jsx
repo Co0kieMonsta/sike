@@ -4,6 +4,7 @@ import { useState } from "react";
 import { createAsset, updateAsset, deleteAsset } from "@/config/inventory.config";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
