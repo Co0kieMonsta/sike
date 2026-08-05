@@ -221,12 +221,12 @@ export const menusConfig = {
         isHide: false,
         child: [
           {
-            title: "Productos",
+            title: "Inventario Productos",
             href: "/inventory/products",
             icon: FileText,
           },
           {
-            title: "Activos",
+            title: "Inventario Activos",
             href: "/inventory/assets",
             icon: FileText,
           },
