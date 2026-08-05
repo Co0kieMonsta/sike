@@ -154,21 +154,32 @@ export default function CategoryList() {
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold tracking-tight">Categorías de Inventario</h2>
-        <Dialog open={isOpen} onOpenChange={(open) => {
+    <div className="space-y-5">
+      <Card className="mb-5">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <Package className="h-8 w-8 text-primary" />
+                Categorías de Inventario
+              </CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Administra las categorías de tus Productos y Activos.
+              </CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Dialog open={isOpen} onOpenChange={(open) => {
           setIsOpen(open);
           if (!open) {
             setEditingCategory(null);
             form.reset({ name: "", type: "product", description: "" });
           }
         }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Nueva Categoría
-            </Button>
-          </DialogTrigger>
+                <DialogTrigger asChild>
+                  <Button className="w-full sm:w-auto">
+                    <Plus className="mr-2 h-4 w-4" /> Nueva Categoría
+                  </Button>
+                </DialogTrigger>
           <DialogContent className="max-w-[500px]">
             <DialogHeader>
               <DialogTitle>{editingCategory ? "Editar Categoría" : "Nueva Categoría"}</DialogTitle>
@@ -231,8 +242,11 @@ export default function CategoryList() {
               </form>
             </Form>
           </DialogContent>
-        </Dialog>
-      </div>
+              </Dialog>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -245,8 +259,8 @@ export default function CategoryList() {
             />
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
+        <CardContent className="p-0 sm:p-6">
+          <div className="rounded-md border-0 sm:border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

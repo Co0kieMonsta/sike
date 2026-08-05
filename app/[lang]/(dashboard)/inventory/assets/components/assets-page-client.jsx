@@ -15,6 +15,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Wrench } from "lucide-react";
 
 export function AssetsPageClient({ initialAssets, categories }) {
   const router = useRouter();
@@ -72,15 +73,26 @@ export function AssetsPageClient({ initialAssets, categories }) {
   });
 
   return (
-    <div className="space-y-4">
-      <Card>
+    <div className="space-y-5">
+      <Card className="mb-5">
         <CardHeader>
-          <CardTitle>Activos y Herramientas</CardTitle>
-          <CardDescription>
-            Gestiona la maquinaria, equipos y herramientas del taller.
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-3xl font-bold tracking-tight flex items-center gap-2">
+                <Wrench className="h-8 w-8 text-primary" />
+                Activos y Herramientas
+              </CardTitle>
+              <CardDescription className="mt-1 text-base">
+                Gestiona la maquinaria, equipos y herramientas del taller.
+              </CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
+      </Card>
+      
+      <Card>
+        <CardContent className="p-0 sm:p-6">
+          <div className="bg-background rounded-md border-0 sm:border">
           <DataTable
             columns={tableColumns}
             data={initialAssets}
@@ -88,6 +100,7 @@ export function AssetsPageClient({ initialAssets, categories }) {
               <DataTableToolbar table={table} onAdd={() => handleOpenDialog(null)} />
             )}
           />
+          </div>
         </CardContent>
       </Card>
 
