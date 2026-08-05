@@ -231,12 +231,19 @@ const ReportesPage = () => {
         startY: 90,
         headStyles: { fillColor: [37, 99, 235], textColor: 255, halign: 'left' },
         alternateRowStyles: { fillColor: [248, 250, 252] },
-        head: [['Fecha', 'Tipo', 'Categoría', 'Monto', 'Método']],
+        head: [['Fecha', 'Tipo', 'Categoría', 'Descripción', 'Monto', 'Método']],
         body: completadas.map(t => [
           new Date(t.fecha + 'T12:00:00').toLocaleDateString(),
           t.tipo.toUpperCase(),
           t.categoria || '-',
-          `$${t.monto}`,
+          t.descripcion || '-',
+          { 
+            content: `$${t.monto}`, 
+            styles: { 
+              textColor: t.tipo === 'ingreso' ? [22, 163, 74] : [220, 38, 38], 
+              fontStyle: 'bold' 
+            } 
+          },
           t.metodoPago || '-'
         ]),
       });
