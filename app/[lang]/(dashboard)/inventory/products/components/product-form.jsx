@@ -49,7 +49,7 @@ export function ProductForm({ initialData }) {
       try {
         const response = await getCategories();
         if (response.status === "success") {
-          setCategories(response.data);
+          setCategories(response.data.filter(c => c.type !== 'asset'));
         }
       } catch (error) {
         console.error("Error fetching categories", error);

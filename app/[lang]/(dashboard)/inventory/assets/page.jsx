@@ -8,7 +8,7 @@ export default async function AssetsPage() {
   const categoriesRes = await getCategories();
 
   const assets = assetsRes?.status === "success" ? assetsRes.data : [];
-  const categories = categoriesRes?.status === "success" ? categoriesRes.data : [];
+  const categories = categoriesRes?.status === "success" ? categoriesRes.data.filter(c => c.type === 'asset') : [];
 
   return (
     <div className="p-6">

@@ -27,6 +27,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import {
   Form,
   FormControl,
   FormField,
@@ -56,6 +64,9 @@ import { getCategories, createCategory, updateCategory, deleteCategory } from "@
 
 const categorySchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
+  type: z.enum(["product", "asset"], {
+    required_error: "Seleccione el tipo de categoría",
+  }),
   description: z.string().optional(),
 });
 
@@ -86,6 +97,7 @@ export default function CategoryList() {
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
+      type: "product",
       description: "",
     },
   });
@@ -101,7 +113,7 @@ export default function CategoryList() {
       }
       setIsOpen(false);
       setEditingCategory(null);
-      form.reset({ name: "", description: "" });
+      form.reset({ name: "", type: "product", description: "" });
       fetchCategories();
     } catch (error) {
       toast.error("Error al guardar");
@@ -112,6 +124,7 @@ export default function CategoryList() {
     setEditingCategory(category);
     form.reset({
       name: category.name,
+      type: category.type || "product",
       description: category.description || "",
     });
     setIsOpen(true);
@@ -148,7 +161,7 @@ export default function CategoryList() {
           setIsOpen(open);
           if (!open) {
             setEditingCategory(null);
-            form.reset({ name: "", description: "" });
+            form.reset({ name: "", type: "product", description: "" });
           }
         }}>
           <DialogTrigger asChild>
@@ -160,7 +173,7 @@ export default function CategoryList() {
             <DialogHeader>
               <DialogTitle>{editingCategory ? "Editar Categoría" : "Nueva Categoría"}</DialogTitle>
               <DialogDescription>
-                Administra las categorías de tus Productos.
+                Administra las categorías de tus Productos y Activos.
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -174,6 +187,27 @@ export default function CategoryList() {
                       <FormControl>
                         <Input placeholder="Ej. Turbos, Suspensión..." {...field} />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Categoría</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecciona el tipo" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="product">Producto</SelectItem>
+                          <SelectItem value="asset">Activo (Herramienta/Equipo)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -217,6 +251,7 @@ export default function CategoryList() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
+                  <TableHead>Tipo</TableHead>
                   <TableHead>Descripción</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -224,7 +259,7 @@ export default function CategoryList() {
               <TableBody>
                 {filteredCategories.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
+                    <TableCell colSpan={4} className="h-24 text-center">
                       No se encontraron categorías.
                     </TableCell>
                   </TableRow>
@@ -236,6 +271,11 @@ export default function CategoryList() {
                            <Package className="h-4 w-4 text-muted-foreground" />
                            {category.name}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={category.type === 'asset' ? 'secondary' : 'default'} className="whitespace-nowrap">
+                          {category.type === 'asset' ? 'Activo' : 'Producto'}
+                        </Badge>
                       </TableCell>
                       <TableCell>{category.description || '-'}</TableCell>
                       <TableCell className="text-right">
