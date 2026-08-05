@@ -154,7 +154,7 @@ const ReportesPage = () => {
   const isDaily = agrupacion === "diario";
   
   const timeFlow = completadas.reduce((acc, t) => {
-    const d = new Date(t.fecha);
+    const d = new Date(t.fecha + 'T12:00:00');
     let key, label;
     
     if (isDaily) {
@@ -233,7 +233,7 @@ const ReportesPage = () => {
         alternateRowStyles: { fillColor: [248, 250, 252] },
         head: [['Fecha', 'Tipo', 'Categoría', 'Monto', 'Método']],
         body: completadas.map(t => [
-          new Date(t.fecha).toLocaleDateString(),
+          new Date(t.fecha + 'T12:00:00').toLocaleDateString(),
           t.tipo.toUpperCase(),
           t.categoria || '-',
           `$${t.monto}`,

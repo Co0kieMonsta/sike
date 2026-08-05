@@ -166,7 +166,7 @@ const FinanceDashboard = () => {
     // Area Chart Data (Last 6 months regardless of current filter, as it's a trend chart)
     const monthlyFlow = nonTransfers.reduce((acc, t) => {
       if (t.estado !== "completado") return acc;
-      const d = new Date(t.fecha);
+      const d = new Date(t.fecha + 'T12:00:00');
       const monthYear = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const label = d.toLocaleDateString('es-ES', { month: 'short' });
       
@@ -425,7 +425,7 @@ const FinanceDashboard = () => {
                         <div>
                           <p className="font-semibold text-sm group-hover:text-primary transition-colors">{transaction.descripcion}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {transaction.categoria} • {new Date(transaction.fecha).toLocaleDateString('es-ES')}
+                            {transaction.categoria} • {new Date(transaction.fecha + 'T12:00:00').toLocaleDateString('es-ES')}
                           </p>
                         </div>
                       </div>

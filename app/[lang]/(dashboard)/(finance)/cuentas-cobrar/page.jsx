@@ -214,7 +214,7 @@ const CuentasCobrarPage = () => {
                     <TableRow key={t.id}>
                       <TableCell className="whitespace-nowrap">
                         <div className="text-sm">
-                          {new Date(t.fecha).toLocaleDateString('es-ES', { 
+                          {new Date(t.fecha + 'T12:00:00').toLocaleDateString('es-ES', { 
                             day: '2-digit', month: 'short', year: 'numeric' 
                           })}
                         </div>

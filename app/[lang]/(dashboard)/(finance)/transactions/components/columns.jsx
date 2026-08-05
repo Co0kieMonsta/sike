@@ -64,7 +64,7 @@ export const columns = [
       <DataTableColumnHeader column={column} title="Fecha" />
     ),
     cell: ({ row }) => {
-      const fecha = new Date(row.getValue("fecha"));
+      const fecha = new Date(row.original.fecha + 'T12:00:00');
       return (
         <div className="text-sm">
           {fecha.toLocaleDateString('es-ES', { 
