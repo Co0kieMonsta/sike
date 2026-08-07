@@ -36,7 +36,6 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HistoryTimeline from "@/components/history-timeline";
-import imglyRemoveBackground from "@imgly/background-removal";
 import { createProduct, updateProduct, getCategories } from "@/config/inventory.config";
 
 const productSchema = z.object({
@@ -133,6 +132,9 @@ export function ProductFormDialog({ open, onClose, onSubmit: externalOnSubmit, p
       setImagePreview(tempUrl);
       
       try {
+        const bgRemovalModule = await import("@imgly/background-removal");
+        const imglyRemoveBackground = bgRemovalModule.default || bgRemovalModule.removeBackground || bgRemovalModule;
+        
         const blob = await imglyRemoveBackground(file);
         const newUrl = URL.createObjectURL(blob);
         setImagePreview(newUrl);

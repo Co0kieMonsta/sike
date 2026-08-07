@@ -36,7 +36,6 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HistoryTimeline from "@/components/history-timeline";
-import imglyRemoveBackground from "@imgly/background-removal";
 
 const assetSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -123,6 +122,9 @@ export function AssetFormDialog({ open, onClose, onSubmit, asset, isLoading, cat
       setUploading(true);
       
       // Eliminar fondo
+      const bgRemovalModule = await import("@imgly/background-removal");
+      const imglyRemoveBackground = bgRemovalModule.default || bgRemovalModule.removeBackground || bgRemovalModule;
+      
       const blob = await imglyRemoveBackground(file);
       const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
 

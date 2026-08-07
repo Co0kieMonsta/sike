@@ -26,6 +26,11 @@ const nextConfig = {
     // Modify the file loader rule to ignore *.svg, since we have it handled now.
     fileLoaderRule.exclude = /\.svg$/i;
 
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "onnxruntime-web/webgpu": "onnxruntime-web",
+    };
+
     return config;
   },
   images: {
