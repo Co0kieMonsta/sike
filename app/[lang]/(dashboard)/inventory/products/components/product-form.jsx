@@ -37,7 +37,7 @@ const productSchema = z.object({
   description: z.string().optional(),
 });
 
-export function ProductForm({ initialData }) {
+export function ProductForm({ initialData, onSuccess, onCancel }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -101,8 +101,12 @@ export function ProductForm({ initialData }) {
 
       if (response.status === "success") {
         toast.success(initialData ? "Producto actualizado" : "Producto registrado");
-        router.push("/inventory/products");
-        router.refresh();
+        if (onSuccess) {
+            onSuccess();
+        } else {
+            router.push("/inventory/products");
+            router.refresh();
+        }
       } else {
         toast.error(response.message || "Error al guardar");
       }
@@ -117,7 +121,7 @@ export function ProductForm({ initialData }) {
   return (
     <div className="space-y-4 max-w-5xl mx-auto pb-10">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
+        <Button type="button" variant="outline" size="icon" onClick={() => onCancel ? onCancel() : router.back()}>
             <ArrowLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-2xl font-bold tracking-tight">
@@ -287,7 +291,7 @@ export function ProductForm({ initialData }) {
         </Card>
 
         <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={() => router.back()}>
+            <Button type="button" variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
                 Cancelar
             </Button>
             <Button type="submit" disabled={loading}>

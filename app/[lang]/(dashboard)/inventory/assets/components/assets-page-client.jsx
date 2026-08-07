@@ -24,6 +24,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Wrench } from "lucide-react";
+import { AssetFormDialog } from "./asset-form-dialog";
 
 export function AssetsPageClient({ initialAssets, categories }) {
   const router = useRouter();

@@ -20,11 +20,21 @@ import { Plus, Package } from "lucide-react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ProductForm } from "./components/product-form";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const handleEditProduct = (product) => {
+    setSelectedProduct(product);
+    setIsEditModalOpen(true);
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -89,12 +99,10 @@ export default function ProductsPage() {
               </CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Link href="/inventory/products/crear" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Registrar Producto
-                </Button>
-              </Link>
+              <Button className="w-full sm:w-auto" onClick={() => setIsCreateModalOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Registrar Producto
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -170,11 +178,9 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Link href={`/inventory/products/${p.id}`}>
-                            <Button variant="ghost" size="icon" title="Editar">
-                              <Pencil className="h-4 w-4 text-blue-600" />
-                            </Button>
-                          </Link>
+                          <Button variant="ghost" size="icon" title="Editar" onClick={() => handleEditProduct(p)}>
+                            <Pencil className="h-4 w-4 text-blue-600" />
+                          </Button>
                           <Link href={`/inventory/products/history/${p.id}`}>
                             <Button variant="ghost" size="icon" title="Historial">
                               <History className="h-4 w-4 text-gray-600" />
@@ -193,6 +199,41 @@ export default function ProductsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Registrar Producto</DialogTitle>
+            <DialogDescription>Formulario para registrar un nuevo producto.</DialogDescription>
+          </DialogHeader>
+          <ProductForm 
+            onSuccess={() => {
+              setIsCreateModalOpen(false);
+              fetchProducts();
+            }}
+            onCancel={() => setIsCreateModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Editar Producto</DialogTitle>
+            <DialogDescription>Formulario para editar un producto existente.</DialogDescription>
+          </DialogHeader>
+          {selectedProduct && (
+            <ProductForm 
+              initialData={selectedProduct}
+              onSuccess={() => {
+                setIsEditModalOpen(false);
+                fetchProducts();
+              }}
+              onCancel={() => setIsEditModalOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
