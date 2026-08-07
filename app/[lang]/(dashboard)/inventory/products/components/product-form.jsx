@@ -23,6 +23,7 @@ import {
 import { storage } from "@/lib/firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import Image from "next/image";
+import imglyRemoveBackground from "@imgly/background-removal";
 
 const productSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -43,6 +44,7 @@ export function ProductForm({ initialData, onSuccess, onCancel }) {
   const [categories, setCategories] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(initialData?.imageUrl || null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   useEffect(() => {
     const fetchCats = async () => {
@@ -70,12 +72,26 @@ export function ProductForm({ initialData, onSuccess, onCancel }) {
     },
   });
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageFile(file);
-      const url = URL.createObjectURL(file);
-      setImagePreview(url);
+      setIsProcessingImage(true);
+      const tempUrl = URL.createObjectURL(file);
+      setImagePreview(tempUrl);
+      
+      try {
+        const blob = await imglyRemoveBackground(file);
+        const newUrl = URL.createObjectURL(blob);
+        setImagePreview(newUrl);
+        const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
+        setImageFile(newFile);
+      } catch (error) {
+        console.error("Error removing background:", error);
+        toast.error("Error al quitar el fondo. Se usará la original.");
+        setImageFile(file);
+      } finally {
+        setIsProcessingImage(false);
+      }
     }
   };
 
@@ -150,17 +166,26 @@ export function ProductForm({ initialData, onSuccess, onCancel }) {
             </div>
             
             <div className="space-y-2 md:col-span-2 flex flex-col items-center p-4 border-2 border-dashed rounded-lg border-muted-foreground/25 bg-muted/20">
-              <Label htmlFor="image" className="cursor-pointer flex flex-col items-center gap-2">
+              <Label htmlFor="image" className={`cursor-pointer flex flex-col items-center gap-2 ${isProcessingImage ? 'opacity-50 pointer-events-none' : ''}`}>
                 {imagePreview ? (
                   <div className="relative w-40 h-40 rounded-lg overflow-hidden border bg-background">
                     <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
+                    {isProcessingImage && (
+                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="w-40 h-40 rounded-lg border flex items-center justify-center bg-background text-muted-foreground">
-                    Sin imagen
+                  <div className="w-40 h-40 rounded-lg border flex items-center justify-center bg-background text-muted-foreground relative">
+                    {isProcessingImage ? (
+                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    ) : "Sin imagen"}
                   </div>
                 )}
-                <span className="text-sm text-primary font-medium mt-2">Haz clic para subir una foto</span>
+                <span className="text-sm text-primary font-medium mt-2">
+                  {isProcessingImage ? "Procesando imagen (Quitando fondo)..." : "Haz clic para subir una foto"}
+                </span>
               </Label>
               <Input
                 id="image"
@@ -294,8 +319,8 @@ export function ProductForm({ initialData, onSuccess, onCancel }) {
             <Button type="button" variant="outline" onClick={() => onCancel ? onCancel() : router.back()}>
                 Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
-                {loading && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>}
+            <Button type="submit" disabled={loading || isProcessingImage}>
+                {(loading || isProcessingImage) && <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>}
                 <Save className="mr-2 h-4 w-4" />
                 Guardar Producto
             </Button>

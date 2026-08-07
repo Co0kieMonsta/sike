@@ -25,6 +25,7 @@
     "@fullcalendar/timegrid": "^6.1.9",
     "@hookform/resolvers": "^3.3.2",
     "@iconify/react": "^4.1.1",
+    "@imgly/background-removal": "^1.7.0",
     "@mdx-js/loader": "^3.0.1",
     "@mdx-js/react": "^3.0.1",
     "@next/mdx": "^14.1.0",

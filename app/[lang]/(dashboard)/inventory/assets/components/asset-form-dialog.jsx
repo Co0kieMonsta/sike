@@ -36,6 +36,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { toast } from "react-hot-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import HistoryTimeline from "@/components/history-timeline";
+import imglyRemoveBackground from "@imgly/background-removal";
 
 const assetSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -120,8 +121,13 @@ export function AssetFormDialog({ open, onClose, onSubmit, asset, isLoading, cat
 
     try {
       setUploading(true);
-      const storageRef = ref(storage, `assets/${Date.now()}_${file.name}`);
-      const snapshot = await uploadBytes(storageRef, file);
+      
+      // Eliminar fondo
+      const blob = await imglyRemoveBackground(file);
+      const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
+
+      const storageRef = ref(storage, `assets/${Date.now()}_${newFile.name}`);
+      const snapshot = await uploadBytes(storageRef, newFile);
       const downloadURL = await getDownloadURL(snapshot.ref);
       setImageUrl(downloadURL);
       toast.success("Imagen subida");
