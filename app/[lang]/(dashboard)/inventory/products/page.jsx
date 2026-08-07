@@ -21,7 +21,7 @@ import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ProductForm } from "./components/product-form";
+import { ProductFormDialog } from "./components/product-form";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -200,40 +200,23 @@ export default function ProductsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Registrar Producto</DialogTitle>
-            <DialogDescription>Formulario para registrar un nuevo producto.</DialogDescription>
-          </DialogHeader>
-          <ProductForm 
-            onSuccess={() => {
-              setIsCreateModalOpen(false);
-              fetchProducts();
-            }}
-            onCancel={() => setIsCreateModalOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      <ProductFormDialog
+        open={isCreateModalOpen}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          fetchProducts();
+        }}
+      />
 
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto sm:max-w-[800px]">
-          <DialogHeader className="sr-only">
-            <DialogTitle>Editar Producto</DialogTitle>
-            <DialogDescription>Formulario para editar un producto existente.</DialogDescription>
-          </DialogHeader>
-          {selectedProduct && (
-            <ProductForm 
-              initialData={selectedProduct}
-              onSuccess={() => {
-                setIsEditModalOpen(false);
-                fetchProducts();
-              }}
-              onCancel={() => setIsEditModalOpen(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      <ProductFormDialog
+        open={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedProduct(null);
+          fetchProducts();
+        }}
+        product={selectedProduct}
+      />
     </div>
   );
 }
