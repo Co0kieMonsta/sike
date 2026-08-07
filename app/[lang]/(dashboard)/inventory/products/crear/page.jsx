@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function CrearProductPage() {
   return (
-    <div className="p-6">
+    <div>
       <ProductForm />
     </div>
   );

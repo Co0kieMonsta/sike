@@ -11,7 +11,7 @@ export default async function AssetsPage() {
   const categories = categoriesRes?.status === "success" ? categoriesRes.data.filter(c => c.type === 'asset') : [];
 
   return (
-    <div className="p-6">
+    <div>
       <AssetsPageClient initialAssets={assets} categories={categories} />
     </div>
   );

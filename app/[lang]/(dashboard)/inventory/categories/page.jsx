@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function CategoriesPage() {
   return (
-    <div className="p-6">
+    <div>
       <ClientCategoryList />
     </div>
   );

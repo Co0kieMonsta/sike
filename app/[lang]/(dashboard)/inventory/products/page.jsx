@@ -75,7 +75,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="space-y-5 p-6">
+    <div className="space-y-5">
       <Card className="mb-5">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

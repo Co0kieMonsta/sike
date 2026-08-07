@@ -14,11 +14,11 @@ export default async function ProductHistoryPage({ params }) {
   const product = response.status === "success" ? response.data : null;
 
   if (!product) {
-    return <div className="p-6 text-destructive">Error: Producto no encontrado</div>;
+    return <div className="text-destructive">Error: Producto no encontrado</div>;
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/inventory/products">
           <Button variant="outline" size="icon">
