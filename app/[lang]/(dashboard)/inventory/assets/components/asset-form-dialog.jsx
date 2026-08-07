@@ -125,11 +125,7 @@ export function AssetFormDialog({ open, onClose, onSubmit, asset, isLoading, cat
       const bgRemovalModule = await import("@imgly/background-removal");
       const removeBg = bgRemovalModule.removeBackground;
       
-      const config = {
-        publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.11/dist/"
-      };
-      
-      const blob = await removeBg(file, config);
+      const blob = await removeBg(file);
       const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
 
       const storageRef = ref(storage, `assets/${Date.now()}_${newFile.name}`);

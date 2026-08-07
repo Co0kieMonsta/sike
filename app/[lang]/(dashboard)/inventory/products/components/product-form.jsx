@@ -135,11 +135,7 @@ export function ProductFormDialog({ open, onClose, onSubmit: externalOnSubmit, p
         const bgRemovalModule = await import("@imgly/background-removal");
         const removeBg = bgRemovalModule.removeBackground;
         
-        const config = {
-          publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.11/dist/"
-        };
-        
-        const blob = await removeBg(file, config);
+        const blob = await removeBg(file);
         const newUrl = URL.createObjectURL(blob);
         setImagePreview(newUrl);
         const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
