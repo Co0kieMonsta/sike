@@ -133,16 +133,20 @@ export function ProductFormDialog({ open, onClose, onSubmit: externalOnSubmit, p
       
       try {
         const bgRemovalModule = await import("@imgly/background-removal");
-        const imglyRemoveBackground = bgRemovalModule.default || bgRemovalModule.removeBackground || bgRemovalModule;
+        const removeBg = bgRemovalModule.removeBackground;
         
-        const blob = await imglyRemoveBackground(file);
+        const config = {
+          publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.11/dist/"
+        };
+        
+        const blob = await removeBg(file, config);
         const newUrl = URL.createObjectURL(blob);
         setImagePreview(newUrl);
         const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
         setImageFile(newFile);
       } catch (error) {
         console.error("Error removing background:", error);
-        toast.error("Error al quitar el fondo. Se usará la original.");
+        toast.error("Error al quitar fondo: " + (error.message || "Desconocido"));
         setImageFile(file);
       } finally {
         setIsProcessingImage(false);

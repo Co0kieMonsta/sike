@@ -123,9 +123,13 @@ export function AssetFormDialog({ open, onClose, onSubmit, asset, isLoading, cat
       
       // Eliminar fondo
       const bgRemovalModule = await import("@imgly/background-removal");
-      const imglyRemoveBackground = bgRemovalModule.default || bgRemovalModule.removeBackground || bgRemovalModule;
+      const removeBg = bgRemovalModule.removeBackground;
       
-      const blob = await imglyRemoveBackground(file);
+      const config = {
+        publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.11/dist/"
+      };
+      
+      const blob = await removeBg(file, config);
       const newFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
 
       const storageRef = ref(storage, `assets/${Date.now()}_${newFile.name}`);
@@ -135,7 +139,7 @@ export function AssetFormDialog({ open, onClose, onSubmit, asset, isLoading, cat
       toast.success("Imagen subida");
     } catch (error) {
       console.error(error);
-      toast.error("Error al subir imagen");
+      toast.error("Error al subir imagen o quitar fondo: " + (error.message || "Desconocido"));
     } finally {
       setUploading(false);
     }
